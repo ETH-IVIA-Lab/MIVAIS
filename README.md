@@ -3,6 +3,7 @@
 [![arXiv:2603.XXXXX](https://img.shields.io/badge/arXiv-2603.XXXXX-red)](https://arxiv.org/abs/2603.XXXXX)
 
 ![Overview of the MIVAIS framework. The MIVAIS Infrastructure (left) supports the implementation of modular, mixed-initiative Visual Analytics (VA) systems where software and human agents collaborate. The MIVAIS Study Environment (right) enables researchers to easily configure experiments, collect multi-modal data during participant sessions, and perform comprehensive post-analysis.](MIVAIS/docs/mivais_teaser.svg)
+
 MIVAIS (A Study Environment for Multi-Agent Mixed-Initiative Visual Analytics Applications) is a framework that allows researchers to build mixed-initiative Visual Analytics applications and evaluate their approaches with low-effort study setup and post-analysis. The MIVAIS Infrastructure supports the implementation of modular, mixed-initiative Visual Analytics (VA) systems where software and human agents collaborate. The MIVAIS Study Environment enables researchers to easily configure experiments, collect multi-modal data during participant sessions, and perform comprehensive post-analysis.     
 
 Learn more about MIVAIS by reading the [MIVAIS research paper](https://arxiv.org/abs/2603.XXXXX).
