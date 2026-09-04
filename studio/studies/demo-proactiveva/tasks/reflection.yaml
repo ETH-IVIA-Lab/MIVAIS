@@ -1,0 +1,13 @@
+id: reflection
+type: free_text
+prompt_md: |
+  ## In your own words
+  Describe one moment where the assistant helped you — or got in your way.
+  What did it suggest, and what did you do? (2–3 sentences)
+min_chars: 40
+max_chars: 1200
+rows: 5
+placeholder: "When I was looking at…"
+ground_truth:
+  type: regex
+  value: "(suggest|assistant|tip|hint|note|comment)"

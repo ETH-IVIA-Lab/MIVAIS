@@ -1,0 +1,469 @@
+<article class="tut">
+
+  <p class="kicker">Tutorial</p>
+  <h1>Build a study-ready VA on MIVAIS</h1>
+  <p class="lede">From an empty folder to a working mixed-initiative visual analytics
+     system — and from there to a controlled, replayable user study — in twelve steps.</p>
+  <p class="meta">~30 minutes &middot; Python + a little vanilla JavaScript &middot;
+     the finished system ships in this repository as <code>Starter_VA/</code> &middot;
+     five full showcase studies live in <code>studio/studies/</code></p>
+
+  <div class="toc">
+    <b>What's ahead</b>
+    <ol>
+      <li><a href="#part1">Part 1 — Build the VA</a>: one config file, one agent, the wiring, one HTML file. With live demos.</li>
+      <li><a href="#part2">Part 2 — Study it</a>: describe a study in YAML, upload &amp; register it, run it, replay it.</li>
+      <li><a href="#part3">Part 3 — Bring your own interface</a>: the exact contract to adapt, and where to go next.</li>
+    </ol>
+  </div>
+
+  <h2 id="intro">What you will build</h2>
+  <p>The <b>Starter VA</b>: a scatterplot of 24 classic cars where the analyst picks
+     the x- and y-axis attributes — and an <b>InsightAgent</b> that watches those choices
+     and, unprompted, computes the correlation and comments on it in the shared chat.</p>
+  <div class="loop">
+    analyst changes an axis&ensp;→&ensp;agent observes&ensp;→&ensp;agent writes an insight&ensp;→&ensp;everyone sees it
+  </div>
+  <p>That loop is mixed-initiative visual analytics in miniature. The point of building it
+     on MIVAIS is what you <i>don't</i> write: permissions, audit logging, real-time
+     synchronization across clients, chat, presence, and a replayable session recording all
+     come from the infrastructure. Your code is the scatterplot and the agent — about 200
+     lines of application logic, total.</p>
+  <p>Three ideas carry everything:</p>
+  <ul>
+    <li><b>World State</b> — a shared key-value blackboard. Humans and agents never call
+        each other; they read and write keys.</li>
+    <li><b>Capabilities</b> — one config file declares who may read/write which keys and
+        publish on which topics. Humans and agents are declared in the same vocabulary.</li>
+    <li><b>Watch</b> — an agent registers a callback on a key and becomes part of the
+        loop. Nobody invokes it.</li>
+  </ul>
+
+  <details class="demo">
+    <summary>Live demo — a full-scale system built on the same seven components</summary>
+    <div class="demo-body">
+      <p style="font-size:13.5px; color:#8a919b;">This is the hosted PODIUM —
+         a published mixed-initiative ranking system reimplemented on MIVAIS. Drag a car,
+         nudge a weight, and watch the ranking agent react. Everything you build in this
+         tutorial uses exactly the same infrastructure.</p>
+      <div class="demo-frames single">
+        <figure>
+          <figcaption>podium.example_va.com — live, isolated demo world</figcaption>
+          <iframe src="https://podium.example_va.com/?room=setup-tutorial-demo" loading="lazy" title="PODIUM live demo"></iframe>
+        </figure>
+      </div>
+    </div>
+  </details>
+
+  <h2 id="part1">Part 1 — Build the VA</h2>
+
+  <h3 id="s1"><span class="step">1</span>Project layout &amp; install</h3>
+  <p>MIVAIS is a plain Python package in this repository — clone the repository first;
+     there is nothing to install from a package index. You need Python 3.11+ and Node
+     only if you later want a build-step frontend (the Starter VA needs none). Create
+     the folders and install MIVAIS editably next to your app:</p>
+<pre><code>Starter_VA/
+├── backend/
+│   ├── main.py               # all wiring (steps 4–5)
+│   ├── agents_config.yaml    # who may do what (step 2)
+│   ├── agents/insight_agent.py   # the one agent (step 3)
+│   └── requirements.txt      #   -e file:../../MIVAIS  +  fastapi, uvicorn
+└── frontend/
+    └── index.html            # one file, no build step (step 6)
+
+$ cd Starter_VA/backend
+$ pip install -r requirements.txt</code></pre>
+
+  <h3 id="s2"><span class="step">2</span>Declare who may do what</h3>
+  <p>Everything the infrastructure enforces at runtime is declared here — for the two
+     human roles <i>and</i> the agent, in identical terms. Note the asymmetry that guides
+     you while developing: an empty <code>can_write</code> means <i>write nothing</i>
+     (fail-closed), an empty <code>can_read</code> means <i>read everything</i>.</p>
+  <span class="file">backend/agents_config.yaml</span>
+<pre><code>{
+  "users": [
+    { "role": "analyst",
+      "can_read": [], "can_write": ["selected_attributes"],
+      "bus_publish_topics": ["chat.message"],
+      "bus_subscribe_topics": ["chat.message"] },
+    { "role": "observer",
+      "can_read": [], "can_write": [],
+      "bus_publish_topics": [],
+      "bus_subscribe_topics": ["chat.message"] }
+  ],
+  "agents": [
+    { "agent_id": "insight_agent", "class": "InsightAgent", "enabled": true,
+      "can_read": ["dataset", "selected_attributes"],
+      "can_write": ["insight"],
+      "bus_publish_topics": ["chat.message"], "bus_subscribe_topics": [],
+      "params": { "strong_threshold": 0.7, "moderate_threshold": 0.4 } }
+  ]
+}</code></pre>
+  <p>Want a third role, or a stricter agent? Edit this file. No application code changes.</p>
+
+  <h3 id="s3"><span class="step">3</span>Write the agent</h3>
+  <p>An agent subclasses <code>BaseAgent</code> and implements one coroutine:
+     <code>run()</code>. It reaches the world only through four inherited helpers —
+     <code>self._read</code>, <code>self._write</code>, <code>self._publish</code>,
+     <code>self._subscribe</code> — which bind the agent's identity into every call, so
+     everything it does is permission-checked and audit-logged as <i>insight_agent</i>.</p>
+  <span class="file">backend/agents/insight_agent.py</span>
+<pre><code>class InsightAgent(BaseAgent):
+
+    async def run(self):
+        # become part of the loop: react whenever ANYONE changes the selection
+        self._ws.watch("selected_attributes", self._on_selection)
+        sel = self._read("selected_attributes")
+        if sel: await self._analyze(sel)          # comment on the initial view too
+        await asyncio.Event().wait()              # all further work is watch-driven
+
+    async def _on_selection(self, key, value):
+        await self._analyze(value)
+
+    async def _analyze(self, sel):
+        data = self._read("dataset", [])
+        r = pearson([row[sel["x"]] for row in data],
+                    [row[sel["y"]] for row in data])
+        strength = ("strong" if abs(r) >= self.params["strong_threshold"] else
+                    "moderate" if abs(r) >= self.params["moderate_threshold"] else "weak")
+        self._write("insight", { "x": sel["x"], "y": sel["y"], "r": round(r, 3),
+                                 "strength": strength, "text": "…" })
+        await self._publish("chat.message", {
+            "from": self.agent_id, "to": "broadcast",
+            "text": f"Looking at {sel['x']} vs {sel['y']}: {strength} correlation (r = {r:+.2f})." })</code></pre>
+  <p>That's the whole pattern: <b>watch → read → compute → write / publish</b>. The full
+     file (with the pure-Python <code>pearson</code>) is
+     <code>Starter_VA/backend/agents/insight_agent.py</code>.</p>
+
+  <h3 id="s4"><span class="step">4</span>Wire the infrastructure</h3>
+  <p>Seven components, constructed once, in dependency order. This block is the same in
+     every MIVAIS application — PODIUM, Voyager 2 and ProactiveVA in this repository wire
+     the exact same seven lines. (<code>_user_configs</code> is simply the
+     <code>users</code> list from step 2, keyed by role.)</p>
+  <span class="file">backend/main.py</span>
+<pre><code>audit_log   = AuditLog()
+registry    = AgentRegistry()
+guard       = PermissionGuard(registry)
+world_state = WorldState(audit_log=audit_log, permission_guard=guard)
+bus         = MessageBus(audit_log=audit_log)
+recorder    = SessionRecorder(RECORDINGS_DIR)
+
+class StarterGateway(Gateway):
+    # ONE override: translate your domain action into a state write. The write
+    # is attributed to the connected user and checked against their role.
+    async def _handle_action(self, agent_id, session_id, data):
+        if data.get("action") == "select_attributes":
+            self._ws.write(agent_id, "selected_attributes",
+                           {"x": data["x"], "y": data["y"]}, event_type="user_action")
+
+gateway = StarterGateway(world_state=world_state, audit_log=audit_log,
+                         registry=registry, bus=bus,
+                         user_configs=_user_configs, recorder=recorder)</code></pre>
+  <p>At startup, register each configured agent and seed the state
+     (<code>system_write</code> is the one startup-only bypass of the guard):</p>
+<pre><code>for cfg in _config["agents"]:
+    cap = AgentCapabilities(agent_id=cfg["agent_id"], can_read=cfg["can_read"],
+                            can_write=cfg["can_write"],
+                            bus_publish_topics=cfg["bus_publish_topics"], ...)
+    instance = _AGENT_CLASSES[cfg["class"]](agent_id=cap.agent_id,
+                world_state=world_state, message_bus=bus, params=cfg["params"])
+    registry.register(cap, instance)
+    asyncio.create_task(instance.run())
+
+world_state.system_write("dataset", DATASET)
+world_state.system_write("selected_attributes", {"x": "horsepower", "y": "mpg"})</code></pre>
+
+  <h3 id="s5"><span class="step">5</span>Expose the three endpoints</h3>
+  <p>Every MIVAIS VA serves exactly three things: its frontend, a WebSocket, and a
+     health/state probe.</p>
+<pre><code>@app.get("/")                       # the frontend
+async def index():
+    return FileResponse(HERE.parent / "frontend" / "index.html")
+
+@app.websocket("/ws/{session_id}")  # the real-time channel — Gateway does the rest
+async def ws_endpoint(ws, session_id, role: str = "analyst"):
+    await gateway.connect(session_id, ws, role=role)
+    try:
+        while True:
+            await gateway.receive_and_apply(session_id, await ws.receive_text())
+    except WebSocketDisconnect:
+        pass
+    finally:
+        await gateway.disconnect(session_id)
+
+@app.get("/state")                  # health check + snapshot
+async def state():
+    return {"ok": True, "world_state": world_state.snapshot()}</code></pre>
+
+  <h3 id="s6"><span class="step">6</span>The frontend — one file, three message types</h3>
+  <p>No framework required (the Starter VA is a single static HTML file — though nothing
+     stops you from using React, Vue or Svelte: the contract is just a WebSocket). The
+     browser speaks a three-message protocol with the Gateway:</p>
+  <table>
+    <tr><th>direction</th><th>message</th><th>meaning</th></tr>
+    <tr><td>receive</td><td><code>{type:"initial_state", world_state, my_permissions, chat_history}</code></td>
+        <td>full snapshot on connect + what <i>this role</i> may do (drive your UI's enabled/disabled state from it)</td></tr>
+    <tr><td>receive</td><td><code>{type:"state_update", world_state, connected_users}</code></td>
+        <td>pushed after <i>every</i> accepted write, whoever made it — just re-render</td></tr>
+    <tr><td>receive</td><td><code>{type:"bus_message", message:{topic, payload}}</code></td>
+        <td>chat and other subscribed topics</td></tr>
+    <tr><td>send</td><td><code>{action:"select_attributes", x, y}</code></td>
+        <td>your domain actions (handled by your <code>_handle_action</code>)</td></tr>
+    <tr><td>send</td><td><code>{action:"chat_message", text, to:"broadcast"}</code></td>
+        <td>built-in — chat, cursors, drag are free</td></tr>
+  </table>
+<pre><code>const ws = new WebSocket(`ws://${location.host}/ws/${uid}?role=${role}`);
+ws.onmessage = (ev) =&gt; {
+  const msg = JSON.parse(ev.data);
+  if (msg.type === "initial_state" || msg.type === "state_update") {
+    state = Object.assign(state, msg.world_state);
+    render();                              // one render function, state-driven
+  }
+  if (msg.type === "bus_message") addChat(msg.message.payload);
+};
+selX.onchange = () =&gt; ws.send(JSON.stringify(
+    { action: "select_attributes", x: selX.value, y: selY.value }));</code></pre>
+  <p>Run it and open two tabs — one of them with <code>?role=observer</code> — to watch the
+     synchronization and the permission asymmetry:</p>
+<pre><code>$ python main.py          →  http://127.0.0.1:7300</code></pre>
+  <div class="callout">
+    <b>Checkpoint.</b> Change an axis in one tab: the plot updates in both, the agent's
+    comment appears in the chat, and the observer tab's dropdowns are disabled — that is
+    the role config from step 2, enforced by the Permission Guard, reflected by
+    <code>my_permissions</code>. A JSONL recording of everything is already being written
+    to <code>backend/recordings/</code>.
+  </div>
+
+  <details class="demo">
+    <summary>Live demo — the checkpoint, embedded (start the Starter VA locally first)</summary>
+    <div class="demo-body">
+      <p style="font-size:13.5px; color:#8a919b;">These two frames point at
+         <code>http://127.0.0.1:7300</code> on <i>your</i> machine — they work as soon as
+         <code>python main.py</code> is running locally. Left: analyst. Right: observer
+         (locked dropdowns). Change an axis on the left and watch the right follow in
+         real time, agent comment included.</p>
+      <div class="demo-frames">
+        <figure>
+          <figcaption>analyst — can change the encoding</figcaption>
+          <iframe src="http://127.0.0.1:7300/?role=analyst" loading="lazy" title="Starter VA — analyst"></iframe>
+        </figure>
+        <figure>
+          <figcaption>observer — read-only, same live world</figcaption>
+          <iframe src="http://127.0.0.1:7300/?role=observer" loading="lazy" title="Starter VA — observer"></iframe>
+        </figure>
+      </div>
+    </div>
+  </details>
+
+  <h2 id="part2">Part 2 — Study it in Studio</h2>
+  <p>Because the recording, the audit trail and the state broadcasts already exist, the
+     Session Tracking Tool (this application) can run a controlled study on your VA
+     <b>without you adding anything to it</b>. You describe the study declaratively; Studio
+     spawns or embeds your VA, observes it, and records one timeline per session. The
+     admin you are using is a React SPA over a plain REST API (<code>/api/…</code>) — every
+     click below has a documented endpoint behind it.</p>
+
+  <h3 id="s7"><span class="step">7</span>Describe the study</h3>
+  <p>A study is a directory of YAML files. The <code>va:</code> block tells Studio how to run
+     your system — one private instance per session:</p>
+  <span class="file">studio/studies/starter-tutorial/study.yaml</span>
+<pre><code>id: starter-tutorial
+name: "Starter VA — tutorial study"
+mode: singleplayer
+
+va:
+  system: starter
+  spawn_cmd: "python main.py"          # {port}/{recording_dir} placeholders available
+  cwd: "../Starter_VA/backend"
+  iframe_url: "http://127.0.0.1:{port}/"
+  health_check_url: "http://127.0.0.1:{port}/state"
+
+blocks:
+  - id: intro
+    tasks: [welcome]
+  - id: main
+    tasks: [explore, question]
+  - id: outro
+    tasks: [thanks]</code></pre>
+  <p>The spawn contract is two environment variables. Studio sets
+     <code>STUDIO_VA_PORT</code> (a free port) and <code>STUDIO_VA_RECORDING_DIR</code>
+     (where to write the JSONL); the Starter VA honours both in four lines at the top of
+     <code>main.py</code>. Studio probes <code>health_check_url</code>, mounts
+     <code>iframe_url</code> beside the task, and tails the recording directory — that
+     tail <i>is</i> the study's event stream.</p>
+
+  <h3 id="s8"><span class="step">8</span>Define the tasks</h3>
+  <p>Tasks live one per file, one type per question. The full toolbox:
+     <code>info_screen</code>, <code>single_choice</code>, <code>multi_choice</code>,
+     <code>likert</code>, <code>slider</code>, <code>number_input</code>,
+     <code>free_text</code>, and <code>va_interaction</code> — plus ground truths
+     (exact / set / ordered / regex), timers, optional tasks, and conditional flow
+     (<code>next:</code> rules that branch, skip or drop). The interesting one embeds
+     your VA, resets it to a defined baseline, requires a detectable action, and captures
+     part of the shared state as the answer:</p>
+  <span class="file">studio/studies/starter-tutorial/tasks/explore.yaml</span>
+<pre><code>id: explore
+type: va_interaction
+prompt_md: |
+  ## Find a strongly related attribute pair
+timer_seconds: 180
+
+world_state:                    # same start state for every participant,
+  mode: replace                 # pushed through the Gateway — no VA support needed
+  initial:
+    selected_attributes: { x: horsepower, y: mpg }
+    insight: null
+
+task_steps:
+  - id: change-axes
+    label: "Change an axis attribute"
+    mode: auto                  # only a real VA action ticks it — the checkbox
+    auto_check_on:              # is read-only and manual ticks are rejected
+      event_type: user_action
+      meta: { action: select_attributes }
+
+answer:
+  type: capture_state           # the analytical state IS the answer
+  world_state_key: selected_attributes</code></pre>
+  <p>A follow-up question with one of the newer tools, kept beside the running VA:</p>
+<pre><code>id: confidence
+type: slider                    # also available: number_input
+with_va: true                   # keep the VA visible while answering
+prompt_md: "## How confident are you in what you found?"
+min: 0
+max: 100
+step: 5
+unit: "%"
+min_label: "Not at all"
+max_label: "Completely"</code></pre>
+
+  <h3 id="s9"><span class="step">9</span>Register &amp; run</h3>
+  <ul>
+    <li>Log into the admin at <code>/admin/login</code> — the credentials come from the
+        <code>STUDIO_ADMIN_USERNAME</code> / <code>STUDIO_ADMIN_PASSWORD</code> environment
+        variables (<code>admin</code>&nbsp;/&nbsp;<code>change-me</code> in the local
+        docker-compose defaults).</li>
+    <li>In the admin, go to <b>Register a study</b>. Two paths:
+      <ul>
+        <li><b>Upload</b> your <code>study.yaml</code> straight from that page — it is
+            validated against the typed schema and registered in one step. The individual
+            tasks are still read from the study directory's <code>tasks/</code> folder,
+            and a missing task file produces a precise error naming it.</li>
+        <li>Or drop the whole directory under <code>studies/</code> and register it from
+            the on-disk list.</li>
+      </ul>
+    </li>
+    <li>On the study page, <b>+ New code</b> mints an access code; open the join link in
+        a private window. For a <b>multiplayer</b> study, <b>+ Mint cohort</b> creates one
+        code per declared role, all bound to the <i>same</i> lobby — hand one link to each
+        participant and the session starts when everyone is ready.</li>
+    <li>Walk through it: consent → welcome → the scatterplot task (watch the checklist
+        tick itself when you change an axis) → question → done.</li>
+    <li>Want a ping when someone finishes? <b>System → Webhooks</b>: register a signed
+        JSON endpoint of your own, or paste a Discord webhook URL and pick the
+        <code>participant_finished</code> event — no receiving code needed.</li>
+  </ul>
+
+  <h3 id="s10"><span class="step">10</span>Watch it live, then replay it</h3>
+  <p>While the session runs, the live view shows lobby state, per-participant progress and
+     a manual advance control for operator-paced designs. Afterwards, open the session and
+     hit <b>Replay</b>: <b>one</b> scrubbable timeline (the recording itself has no separate
+     scrubber — the study timeline drives everything) with a lane for <i>every</i>
+     participant and a lane for <i>every</i> software agent, the study's own lifecycle,
+     synced screen recordings with a POV switcher — a camera icon marks whose eyes you
+     are looking through, and the transcript follows the selected participant — markers and shared notes for qualitative
+     coding. Exports (CSV / Parquet / frozen preregistration JSON) are on the study page.</p>
+  <div class="callout">
+    <b>That's the whole loop.</b> You never instrumented the Starter VA for any of this.
+    The same recording that let you replay your dev session is what Studio analyzes —
+    reused, not added.
+  </div>
+
+  <h2 id="part3">Part 3 — Bring your own interface</h2>
+  <p>The Starter VA is a template. To put <i>your</i> visualization in its place, map your
+     application onto the same four seams:</p>
+  <table>
+    <tr><th>your system has…</th><th>express it as…</th></tr>
+    <tr><td>application state (selections, filters, results, notes)</td>
+        <td>World State keys — one key per independently-updated thing; agents and the
+            UI re-render from <code>state_update</code></td></tr>
+    <tr><td>user interactions</td>
+        <td><code>{action: "…"}</code> messages, translated into writes in your Gateway
+            subclass's <code>_handle_action</code></td></tr>
+    <tr><td>automated logic (stats, ML, an LLM)</td>
+        <td>agents: <code>watch</code> the triggering keys, compute, <code>_write</code> /
+            <code>_publish</code> the result — see the three PODIUM agents and the
+            LLM-driven ProactiveVA agents in this repo for rule-based, ML and ReAct-style
+            examples</td></tr>
+    <tr><td>user types / conditions</td>
+        <td>roles in <code>agents_config.yaml</code> — permissions only, never
+            <code>if role == …</code> in code</td></tr>
+  </table>
+
+  <p>Keep this contract and Studio needs nothing else from you:</p>
+  <ul>
+    <li><b>Endpoints:</b> <code>/</code> (UI), <code>/ws/{session_id}?role=…</code>,
+        <code>/state</code> (health).</li>
+    <li><b>Spawn:</b> honour <code>STUDIO_VA_PORT</code> and
+        <code>STUDIO_VA_RECORDING_DIR</code>; keep the <code>SessionRecorder</code> on.</li>
+    <li><b>Hosted instead of spawned?</b> If your VA runs as one shared deployment, set
+        <code>external: true</code> + your URL in the study YAML, and relay events from
+        your frontend so Studio can still observe the session:
+<pre><code>window.parent.postMessage({ source: "mivais-va", kind: "va_event",
+  event: { type: "user_action", action: "select_attributes", data: {...} } }, "*");</code></pre>
+        A shared deployment must also isolate concurrent sessions — see the
+        room-per-session pattern in <code>PODIUM_V2/backend/main.py</code>
+        (Studio appends <code>?room=&lt;session&nbsp;id&gt;</code> automatically). Extra
+        URL params pass straight through and let one deployment serve many study
+        configurations — the hosted Voyager, for example, picks its dataset per room from
+        <code>?dataset=&lt;name&gt;</code> in the study's <code>iframe_url</code>.</li>
+    <li><b>Big data?</b> Exclude bulky keys from broadcasts
+        (<code>_broadcast_exclude_keys</code>) and ship them once in
+        <code>initial_state</code>, as PODIUM does with its dataset.</li>
+    <li><b>Think-aloud?</b> Flip the study's <code>recording:</code> block to
+        <code>video: screen</code> + <code>transcribe: true</code> — screen, audio and a
+        time-aligned transcript appear in the replay with no VA changes.</li>
+  </ul>
+
+  <h3 id="s11"><span class="step">11</span>Steal from the showcase studies</h3>
+  <p>Five demo studies in <code>studio/studies/</code> exercise, between them, every
+     capability of the study environment — each task file is titled after the feature it
+     demonstrates:</p>
+  <table>
+    <tr><th>study</th><th>copy it for…</th></tr>
+    <tr><td><code>demo-singleplayer</code></td>
+        <td>every task tool (incl. slider &amp; number input), all ground-truth kinds,
+            branching / attention-check drop, Latin squares, per-language prompts,
+            recording + transcription, Prolific completion</td></tr>
+    <tr><td><code>demo-multiplayer</code></td>
+        <td>lobbies, selectable roles with capacity, cohort codes, one shared world,
+            advance policies (all / first / admin + timeout)</td></tr>
+    <tr><td><code>demo-wizard-of-oz</code></td>
+        <td>the wizard panel, per-role briefings and world state, wizard-paced advance,
+            deception debrief</td></tr>
+    <tr><td><code>demo-two-vas</code></td>
+        <td>two VA systems in one study, per-task <code>va_system</code> binding,
+            cross-tool comparison, per-study dataset selection
+            (<code>?dataset=</code> on the iframe URL)</td></tr>
+    <tr><td><code>demo-proactiveva</code></td>
+        <td>proactive mixed-initiative: LLM-planned suggestions participants accept or
+            dismiss (both auto-detected as task steps), notes as
+            <code>capture_state</code> answers, trust questions about proactive
+            timing</td></tr>
+  </table>
+
+  <h3 id="s12"><span class="step">12</span>Analyze beyond a single session</h3>
+  <p>Everything a study produces is queryable from the admin: per-task summaries and
+     drill-downs, the participant funnel, <b>Compare studies</b> for cross-condition
+     aggregates, and <b>IRR (κ)</b> for the reliability of qualitative codes two reviewers
+     attach during replay. Data leaves via CSV / Parquet exports and a frozen,
+     hash-stamped copy of the study definition for preregistration.</p>
+
+  <p>Sources to copy from: <code>Starter_VA/</code> (this tutorial),
+     <code>studio/studies/</code> (the five showcases + this tutorial's study),
+     <code>PODIUM_V2/</code>, <code>Voyager2_VA/</code> and <code>ProactiveVA/</code>
+     (full-scale systems with rule-based, ML/recommendation and LLM/ReAct agents, rooms,
+     swappable datasets and hosted deployment), and the MIVAIS library documentation in
+     <code>MIVAIS/docs/</code>.</p>
+
+</article>

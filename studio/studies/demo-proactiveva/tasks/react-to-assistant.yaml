@@ -1,0 +1,35 @@
+# The mixed-initiative moment: the planner pushes suggestions into the chat
+# panel; the participant must engage with at least one. Accept and reject are
+# both valid — which one they pick is itself data (captured world state +
+# audit log record every accept_suggestion / reject_suggestion).
+id: react-to-assistant
+type: va_interaction
+prompt_md: |
+  ## Work with the assistant
+  By now the assistant has likely offered one or more **suggestions** in the
+  left panel (if not, keep exploring for a moment — pausing on a view often
+  triggers one). Read a suggestion and respond to it: **Try it** if it seems
+  useful, **Not now** if it doesn't. Either response is fine.
+timer_seconds: 240
+
+task_steps:
+  - id: accept
+    label: "Accept a suggestion (Try it)"
+    mode: auto              # must be done IN the VA — not manually tickable
+    auto_check_on:
+      event_type: user_action
+      meta: { action: accept_suggestion }
+  - id: reject
+    label: "Dismiss a suggestion (Not now)"
+    mode: auto              # must be done IN the VA — not manually tickable
+    auto_check_on:
+      event_type: user_action
+      meta: { action: reject_suggestion }
+  - id: responded
+    label: "I responded to at least one suggestion"
+    required: true
+    mode: manual
+
+answer:
+  type: capture_state
+  world_state_key: pending_suggestions

@@ -1,0 +1,13 @@
+id: quiz-location
+type: single_choice
+prompt_md: |
+  ## From memory
+  Where did the major **fire** break out?
+options:
+  - { id: dancing_dolphin, label: "The Dancing Dolphin apartment building" }
+  - { id: gelato_galore,   label: "The Gelato Galore shop" }
+  - { id: city_hall,       label: "Abila City Hall" }
+  - { id: pok_rally,       label: "The POK rally stage in the park" }
+ground_truth:
+  type: exact
+  value: dancing_dolphin

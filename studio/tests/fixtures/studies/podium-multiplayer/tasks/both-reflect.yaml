@@ -1,0 +1,9 @@
+id: both-reflect
+type: free_text
+with_va: true
+prompt_md: |
+  ## In one sentence: which car did you agree on, and why?
+  Both of you answer individually. PODIUM stays visible on the left.
+min_chars: 5
+max_chars: 400
+rows: 3

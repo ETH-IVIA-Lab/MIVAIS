@@ -1,0 +1,40 @@
+# FEATURE: va_interaction — world_state reset, timer, auto + manual + required
+# steps, capture_state answer (the analytical artifact IS the answer).
+id: find-efficient
+type: va_interaction
+prompt_md: |
+  ## Find the most fuel-efficient cars
+  Use the weights however you like. When the top of the ranking looks right
+  to you, submit — your final weights are captured automatically.
+timer_seconds: 240
+
+world_state:
+  mode: replace
+  initial:
+    session_nudges: {}
+    weights: {}
+    user_preference_ranking: {}
+    ranked_items: []
+    display_order: []
+
+task_steps:
+  - id: nudge
+    label: "Adjust at least one attribute weight"
+    required: true
+    mode: auto              # must be done IN the VA — not manually tickable
+    auto_check_on:              # ticks itself from the MIVAIS event stream
+      event_type: user_action
+      meta: { action: set_nudges }
+  - id: drag
+    label: "Drag a car to a new position"
+    mode: auto              # must be done IN the VA — not manually tickable
+    auto_check_on:
+      event_type: user_action
+      meta: { action: drop_order }
+  - id: check-ranking
+    label: "Check how the ranking changed"   # manual — only you know you did it
+    mode: manual
+
+answer:
+  type: capture_state
+  world_state_key: weights

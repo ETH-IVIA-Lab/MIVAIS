@@ -1,0 +1,17 @@
+# FEATURE: the mandatory deception debrief, gated by a required manual step.
+id: debrief
+type: info_screen
+body_md: |
+  ## Debrief — the advisor was a human
+
+  The "automated advisor" was operated live by a researcher (Wizard-of-Oz
+  method). This is standard practice for prototyping agent behavior before
+  building it. Your data lets us design the real agent. If you would rather
+  withdraw your session now that you know, tell the researcher — withdrawal
+  is honored, no questions asked.
+task_steps:
+  - id: understood
+    label: "I have read and understood the debrief"
+    required: true
+    mode: manual
+continue_label: "Finish"

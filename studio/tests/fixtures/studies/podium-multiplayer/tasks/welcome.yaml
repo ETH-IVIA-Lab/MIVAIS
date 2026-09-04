@@ -1,0 +1,13 @@
+id: welcome
+type: info_screen
+body_md: |
+  ## Welcome to the shared session
+
+  You're paired with one other participant. You will both be looking at the
+  same PODIUM ranking on the next screen. One of you is the **Analyst** —
+  you drive the controls. The other is the **Observer** — you can watch
+  the ranking change in real time but cannot change it yourself.
+
+  Take your time and discuss out loud if you want. The task starts once you
+  both click *Continue*.
+continue_label: "Continue"

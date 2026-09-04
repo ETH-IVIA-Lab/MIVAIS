@@ -1,0 +1,40 @@
+id: shared-find-mpg
+type: va_interaction
+variant: default
+prompt_md: |
+  ## Together, find the **most fuel-efficient car**
+
+  The Analyst drives PODIUM (nudge weights, drag candidates). The Observer
+  watches the ranking shift in real time. Decide together which car PODIUM
+  ranks first when fuel efficiency dominates.
+timer_seconds: 300
+
+world_state:
+  mode: replace
+  initial:
+    session_nudges: {}
+    weights: {}
+    user_preference_ranking: {}
+    ranked_items: []
+    display_order: []
+    advice: null
+
+task_steps:
+  - id: discuss
+    label: "Talk about which attribute matters most"
+  - id: nudge
+    label: "Analyst: increase the weight on mpg"
+    # PODIUM emits user_action with action=set_nudges when the participant
+    # nudges an attribute weight. Auto-check fires as soon as that lands.
+    auto_check_on:
+      event_type: user_action
+      meta:
+        action: set_nudges
+  - id: agree
+    label: "Both agree on the top car"
+
+mivais_config:
+  logging_id: shared-find-mpg
+answer:
+  type: capture_state
+  world_state_key: weights

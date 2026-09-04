@@ -1,0 +1,5 @@
+-e file:../../MIVAIS
+
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+websockets>=12.0

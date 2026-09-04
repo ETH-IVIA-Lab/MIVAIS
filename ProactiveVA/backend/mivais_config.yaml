@@ -1,0 +1,13 @@
+chat:
+  enabled: true
+  history_size: 100
+cursors:
+  enabled: true
+audit:
+  enabled: true
+  recording_dir: recordings
+broadcast:
+  exclude_keys:
+  - dataset
+  - hexgrid
+  - streets

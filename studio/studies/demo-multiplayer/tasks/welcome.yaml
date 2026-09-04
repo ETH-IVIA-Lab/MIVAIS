@@ -1,0 +1,9 @@
+id: welcome
+type: info_screen
+body_md: |
+  ## Welcome — this is a two-person study
+
+  You and a partner share **one** ranking tool: every change either of you
+  makes appears instantly on both screens. You each have a distinct role.
+  The study starts when both of you are ready in the lobby.
+continue_label: "To the lobby"

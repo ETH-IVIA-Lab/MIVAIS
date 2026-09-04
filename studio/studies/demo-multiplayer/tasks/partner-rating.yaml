@@ -1,0 +1,15 @@
+# FEATURE: slider in multiplayer + admin-gated advance with a safety timeout.
+id: partner-rating
+type: slider
+prompt_md: |
+  ## Collaboration quality
+  How well did the collaboration work?
+min: 0
+max: 10
+step: 1
+min_label: "Not at all"
+max_label: "Perfectly"
+default_value: 5
+advance:
+  policy: admin          # the researcher releases the cohort from the live view
+  timeout_seconds: 180   # …or it auto-advances after 3 minutes

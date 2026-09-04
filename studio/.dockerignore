@@ -1,0 +1,15 @@
+# Keep the Kaniko build context small and reproducible.
+.git
+.gitignore
+.venv
+.env
+.env.example
+**/__pycache__
+*.pyc
+*.pyo
+.mypy_cache
+.pytest_cache
+data
+*.log
+.bin
+mivais_studio.egg-info

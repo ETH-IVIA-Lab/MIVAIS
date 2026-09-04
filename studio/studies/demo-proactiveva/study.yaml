@@ -1,0 +1,154 @@
+# Singleplayer, ProactiveVA (MC3 crisis analysis with proactive agents).
+#
+# Exercises the third hosted VA: a proactive mixed-initiative system where
+# detector agents watch the analyst's interaction stream and an LLM planner
+# pushes suggestions. The study asks participants to investigate the VAST MC3
+# incident, react to at least one proactive suggestion, and record findings as
+# notes — the notes ARE the captured answer.
+
+id: demo-proactiveva
+name: "Demo — ProactiveVA crisis analysis (proactive agents)"
+version: 1
+
+mode: singleplayer
+
+parameters:
+  tool_name: ProactiveVA
+  study_duration: "about 15 minutes"
+
+consent_text_md: |
+  ## Consent
+
+  You will use {{ params.tool_name }}, a visual analytics tool for analyzing
+  a simulated crisis from social-media and call-center data. An AI assistant
+  observes your analysis and may proactively offer help. The session records
+  your screen and microphone; recordings are stored under an anonymous
+  identifier and used for research only. The study takes
+  {{ params.study_duration }}.
+
+va:
+  system: proactiveva
+  # room_per_session (default true) gives each session a private world — and
+  # a private agent crew — on the locally-deployed ProactiveVA container.
+  external: true
+  iframe_url: "{proactive_base}/"
+  health_check_url: "{proactive_health_base}/state"
+  variants:
+    default:
+      description: "ProactiveVA (detectors + planner + acting agent)"
+
+recording:
+  audio: per_participant
+  video: screen
+  transcribe: true
+  whisper_model: tiny
+
+ui:
+  show_progress_bar: true
+  timer_position: top_right
+  task_steps_position: right
+  theme: auto
+
+completion_code: DEMO-PVA-DONE
+
+# Declarative behavioral metrics, computed per participant from the event
+# stream. Event matchers use the same vocabulary as task_steps.auto_check_on.
+metrics:
+  - id: time_to_first_action
+    label: "Time to first VA action after a task starts"
+    kind: latency
+    from: { event_type: task_start, source: studio }
+    to: { event_type: user_action, source: mivais }
+    aggregate: median
+
+  - id: suggestion_acceptance
+    label: "Suggestion acceptance share"
+    kind: ratio # accepted / (accepted + rejected)
+    numerator: { event_type: user_action, meta: { action: accept_suggestion } }
+    denominator: { event_type: user_action, meta: { action: reject_suggestion } }
+
+  - id: interaction_rate
+    label: "VA interactions per minute"
+    kind: rate
+    match: { event_type: user_action, source: mivais }
+
+  - id: notes_added
+    label: "Notes created"
+    kind: count
+    match: { event_type: user_action, meta: { action: add_note } }
+
+
+replay:
+  event_types:
+    # The actor's chat channel — reuses the built-in "chat" category so it
+    # reads the same as a literal MessageBus chat.message would.
+    - match: { event_type: agent_action, meta: { key: "bus:chat.message" } }
+      category: chat
+      label: "sent a chat message"
+    # A detector noticing the participant might need help.
+    - match: { event_type: agent_action, meta: { key: "bus:help_needed.event" } }
+      category: perception
+      label: "flagged that help may be needed"
+    # The planner proposing a suggestion (both the channel write and its
+    # WorldState mirror land in the same bucket — same real-world event).
+    - match: { event_type: agent_action, meta: { key: "bus:pending_suggestion.new" } }
+      category: suggestion
+      label: "proposed a suggestion"
+    - match: { event_type: agent_action, meta: { key: pending_suggestions } }
+      category: suggestion
+      label: "updated pending suggestions"
+    # A detector commenting on a participant's note.
+    - match: { event_type: agent_action, meta: { key: "bus:note.commented" } }
+      category: note
+      label: "commented on a note"
+
+    # Participant actions — browsing/investigating vs. judging a suggestion
+    # vs. annotating are different shapes of interaction, so they get
+    # different categories rather than all landing in the generic fallback.
+    - match: { event_type: user_action, meta: { action: select_hexagon } }
+      category: exploration
+      label: "selected a hexagon"
+    - match: { event_type: user_action, meta: { action: set_time_range } }
+      category: exploration
+      label: "adjusted the time range"
+    - match: { event_type: user_action, meta: { action: set_keyword_filter } }
+      category: exploration
+      label: "set a keyword filter"
+    - match: { event_type: user_action, meta: { action: set_focus_view } }
+      category: exploration
+      label: "changed the focused view"
+    - match: { event_type: user_action, meta: { action: select_message } }
+      category: exploration
+      label: "selected a message"
+    - match: { event_type: user_action, meta: { action: hover_message } }
+      category: cursor
+      label: "hovered a message"
+    - match: { event_type: user_action, meta: { action: accept_suggestion } }
+      category: decision
+      label: "accepted a suggestion"
+    - match: { event_type: user_action, meta: { action: reject_suggestion } }
+      category: decision
+      label: "rejected a suggestion"
+    - match: { event_type: user_action, meta: { action: add_note } }
+      category: note
+      label: "added a note"
+
+blocks:
+  - id: intro
+    name: "Intro"
+    tasks: [welcome, familiarity]
+
+  - id: investigate
+    name: "Investigate the incident"
+    tasks: [orient, investigate-fire, react-to-assistant]
+
+  - id: questions
+    name: "Questions"
+    tasks: [quiz-location, proactive-trust]
+
+  - id: outro
+    name: "Wrap-up"
+    tasks:
+      - $ref: ../_lib/tasks/nasa-tlx.yaml
+      - reflection
+      - thanks

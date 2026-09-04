@@ -1,0 +1,14 @@
+# FEATURE: free_text with min/max chars + regex ground truth (did the answer
+# mention weights at all? scored, not gating).
+id: reflection
+type: free_text
+prompt_md: |
+  ## In your own words
+  How did you decide when your ranking was "good enough"? (2–3 sentences)
+min_chars: 40
+max_chars: 1200
+rows: 5
+placeholder: "I started by…"
+ground_truth:
+  type: regex
+  value: "(weight|nudge|rank)"

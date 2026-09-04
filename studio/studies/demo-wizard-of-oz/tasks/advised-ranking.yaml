@@ -1,0 +1,42 @@
+# FEATURE: WoZ main task — per-role world_state (the wizard's pane starts
+# with a crib sheet in state), admin advance (the wizard/researcher decides).
+id: advised-ranking
+type: va_interaction
+prompt_md: |
+  ## Rank with the advisor
+  Build a ranking you are happy with. The advisor may chime in — react to
+  it however feels natural.
+timer_seconds: 420
+
+world_state:
+  mode: replace
+  initial:
+    session_nudges: {}
+    weights: {}
+    user_preference_ranking: {}
+    ranked_items: []
+    display_order: []
+    advice: null
+  by_role:
+    wizard:
+      mode: continue
+      set:
+        wizard_crib: "Suggested persona: terse, confident. Nudge mpg twice."
+
+task_steps:
+  - id: interact
+    label: "Adjust weights or drag cars"
+    mode: auto              # must be done IN the VA — not manually tickable
+    auto_check_on:
+      event_type: user_action
+      count: 3
+  - id: advisor
+    label: "React to an advisor message"
+    mode: manual
+
+answer:
+  type: capture_state
+  world_state_key: weights
+
+advance:
+  policy: admin      # the wizard (or researcher) releases the cohort

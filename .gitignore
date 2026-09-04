@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.venv/
+.venv-*/
+venv/
+
+# Local env + runtime data
+.env
+*.log
+studio/data/
+
+/data/
+
+.bin/
+tailwindcss.exe
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node / frontend builds
+node_modules/
+dist/
+*.tsbuildinfo
+
+# VA session recordings (written at runtime; keep the folder, not the data)
+PODIUM_V2/backend/recordings/**/*.jsonl
+Starter_VA/backend/recordings/**/*.jsonl
+Voyager2_VA/backend/recordings/**/*.jsonl
+ProactiveVA/backend/recordings/**/*.jsonl
+USERRAG/backend/recordings/**/*.jsonl
+SoftAttr2/backend/recordings/**/*.jsonl
+SoftAttr/*
+
+# Local LLM key for ProactiveVA (never commit)
+ProactiveVA/backend/.llm_key
+
+# Frozen in-use study copies (created at registration time; runtime state)
+studio/studies/_inuse/

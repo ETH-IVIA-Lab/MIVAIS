@@ -1,0 +1,18 @@
+# FEATURE: multi_choice + ordered_match ground truth — the SELECTION ORDER
+# matters (click them from strongest to weakest).
+id: quiz-order
+type: multi_choice
+prompt_md: |
+  ## Order matters here
+  Click these attributes **in order of how strongly they correlate with
+  mpg** (strongest first). The order of your clicks is recorded.
+options:
+  - { id: weight,       label: "weight" }
+  - { id: horsepower,   label: "horsepower" }
+  - { id: acceleration, label: "acceleration" }
+min_selected: 3
+max_selected: 3
+ground_truth:
+  type: ordered_match
+  value: [weight, horsepower, acceleration]
+  partial_credit: true

@@ -1,0 +1,15 @@
+# FEATURE: optional task (Skip button) + slider without live value display.
+id: bonus-slider
+type: slider
+optional: true
+prompt_md: |
+  ## Bonus
+  Blind estimate — how much of this study's total time did you spend
+  inside the VA (vs. reading and answering questions)?
+min: 0
+max: 100
+step: 10
+min_label: "None of it"
+max_label: "All of it"
+unit: "%"
+show_value: false

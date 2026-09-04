@@ -1,0 +1,11 @@
+chat:
+  enabled: true
+  history_size: 50
+cursors:
+  enabled: true
+audit:
+  enabled: true
+  recording_dir: recordings
+broadcast:
+  exclude_keys:
+  - dataset

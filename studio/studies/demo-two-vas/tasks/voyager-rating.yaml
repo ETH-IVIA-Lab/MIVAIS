@@ -1,0 +1,12 @@
+id: voyager-rating
+type: slider
+va_system: voyager
+with_va: true
+prompt_md: |
+  ## Rate Tool B
+  How well did the chart tool support the task?
+min: 0
+max: 10
+step: 1
+min_label: "Poorly"
+max_label: "Perfectly"

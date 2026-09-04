@@ -1,0 +1,14 @@
+id: welcome
+type: info_screen
+body_md: |
+  ## Welcome
+
+  PODIUM lets you rank {{ params.dataset_name }} from a small dataset of 30 vehicles. You
+  can adjust the weight of each attribute (mpg, horsepower, weight,
+  year, etc.) to influence the ranking, and drag candidates to set
+  your own preference.
+
+  You will do **three short exercises**. The whole study takes
+  {{ params.study_duration }}. After each exercise, you'll answer a
+  single question. Take your time.
+continue_label: "Begin"

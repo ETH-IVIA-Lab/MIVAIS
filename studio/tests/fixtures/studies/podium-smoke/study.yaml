@@ -1,0 +1,121 @@
+# Test study for MIVAIS Studio against PODIUM_V2.
+#
+# Three short PODIUM exercises, each a paired "do something in PODIUM" task
+# followed by an answer question. One question (exercise 1) carries a
+# ground-truth so the admin can see automatic scoring in action.
+#
+# Multi-file layout: this file holds only study-level config. Each task is
+# defined in tasks/<task-id>.yaml and referenced below by id.
+
+id: podium-smoke
+name: "PODIUM smoke test — three exercises"
+version: 2
+
+mode: singleplayer
+
+# Free-form study parameters substituted into prompts at render-time via
+# `{{ params.<key> }}`. Use this when the same study YAML serves multiple
+# variants (e.g. dataset A vs dataset B) — keep the prompt strings DRY.
+parameters:
+  study_duration: "about 5 minutes"
+  dataset_name: cars
+
+# How block order is assigned to each participant:
+#   declared (default) | random | round_robin | latin_square
+# Counterbalancing matters for within-subjects designs where presentation
+# order could confound the outcome. Default is `declared` so the smoke run
+# stays deterministic.
+block_order: declared
+# Optional: explicit orderings used verbatim by round_robin / latin_square.
+# block_orders:
+#   - [intro, exercise-1, exercise-2, exercise-3, debrief]
+#   - [intro, exercise-2, exercise-1, exercise-3, debrief]
+
+consent_text_md: |
+  ## You are about to take part in a short study
+
+  You will work with PODIUM, a visual analytics tool for ranking cars from
+  a small classic dataset. The study has **three exercises**. Each starts
+  with a task to perform inside PODIUM and is followed by a question.
+
+  The study takes about 5 minutes. Your responses are stored under an
+  anonymous identifier and are used for research purposes only. By
+  continuing you confirm that you are happy for them to be saved.
+
+va:
+  system: podium
+  # Points at the locally-deployed PODIUM container. For a protected VA, set
+  # `token_env` to the env var holding the secret; Studio appends
+  # `?token=<value>` (URL-encoded) to the iframe + health check. The secret
+  # stays in the environment, never in this file. PODIUM has no auth today,
+  # so token_env is a no-op until that env var is set.
+  external: true
+  iframe_url: "{external_base}/"
+  health_check_url: "{external_health_base}/state"
+  token_env: "PODIUM_ACCESS_TOKEN"
+  token_param: "token"
+  spawn_timeout_seconds: 60
+  shutdown_grace_seconds: 5
+  variants:
+    default:
+      description: "PODIUM (local docker)"
+
+recording:
+  audio: none
+  # Screen + mic recording of the whole session for synced visual replay in the
+  # admin (see admin → session → Replay). Records THIS browser tab + mic.
+  video: screen
+  # Transcribe the recording's mic audio → subtitles + transcript panel in the
+  # admin Replay. "tiny" is fast on CPU; bump to small/medium for accuracy.
+  transcribe: true
+  whisper_model: tiny
+
+ui:
+  show_progress_bar: true
+  show_timer: true
+  timer_position: top_right
+  task_description_position: left
+  task_steps_visible: true
+  task_steps_position: right
+
+# Blocks list task ids in declared order. Each id resolves to tasks/<id>.yaml.
+blocks:
+  - id: intro
+    name: "Intro"
+    tasks:
+      - welcome
+      # Shared attention check from studies/_lib/. Wrong answer drops the
+      # participant immediately — they go straight to /p/finish with status=dropped.
+      - $ref: ../_lib/tasks/attention-check.yaml
+        next:
+          - when: "not correct"
+            goto: { action: drop }
+
+  - id: exercise-1
+    name: "Exercise 1 · Most fuel-efficient car"
+    tasks:
+      - ex1-find-mpg
+      - ex1-quiz
+
+  - id: exercise-2
+    name: "Exercise 2 · Power vs efficiency tradeoff"
+    tasks:
+      - ex2-balance
+      - ex2-quiz
+
+  - id: exercise-3
+    name: "Exercise 3 · Your personal top three"
+    tasks:
+      - ex3-rank
+      - ex3-confidence
+
+  - id: debrief
+    name: "Wrap-up"
+    tasks:
+      - reflection
+      # Reusable NASA-TLX block from the shared library, with a study-specific
+      # prompt override (shallow merge over the imported task).
+      - $ref: ../_lib/tasks/nasa-tlx.yaml
+        prompt_md: "Rate your overall PODIUM experience on these dimensions:"
+        tags: [nasa-tlx, podium]
+      - thanks

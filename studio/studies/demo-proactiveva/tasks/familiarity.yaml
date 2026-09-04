@@ -1,0 +1,13 @@
+id: familiarity
+type: likert
+prompt_md: |
+  ## About you
+  How familiar are you with **AI assistants** that proactively offer help
+  while you work (e.g. suggestions, autocomplete, copilots)?
+scale:
+  min: 1
+  max: 5
+  min_label: "Not at all familiar"
+  max_label: "Very familiar"
+items:
+  - { id: familiarity, label: "Familiarity with proactive AI assistants" }

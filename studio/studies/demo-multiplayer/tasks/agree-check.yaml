@@ -1,0 +1,13 @@
+# FEATURE: advance-policy override `first` — the FIRST submission advances the
+# whole cohort (races the partners on purpose, to demo the mechanism).
+id: agree-check
+type: single_choice
+prompt_md: |
+  ## Quick pulse — first answer wins
+  Do you both stand behind the final ranking? (The first submission moves
+  you both on.)
+options:
+  - { id: agree,    label: "Yes, we agree on it" }
+  - { id: disagree, label: "No, we ran out of time" }
+advance:
+  policy: first

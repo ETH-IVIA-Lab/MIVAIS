@@ -1,0 +1,9 @@
+id: thanks
+type: info_screen
+body_md: |
+  ## Done — thank you!
+
+  That was the whole study. In the admin dashboard a researcher can now
+  replay your session: every axis change you made, every insight the
+  agent produced, and the moment each happened — on one timeline.
+continue_label: "Finish"

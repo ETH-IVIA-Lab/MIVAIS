@@ -1,0 +1,14 @@
+# FEATURE: single_choice + exact ground truth + automatic scoring.
+id: warmup-check
+type: single_choice
+prompt_md: |
+  ## Quick primer
+  {{ params.tool_name }} ranks cars by a **weighted sum of attributes**.
+  If you increase the weight on `mpg`, which cars rise in the ranking?
+options:
+  - { id: efficient, label: "The fuel-efficient ones" }
+  - { id: heavy,     label: "The heaviest ones" }
+  - { id: random,    label: "A random selection" }
+ground_truth:
+  type: exact
+  value: efficient

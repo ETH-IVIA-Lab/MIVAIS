@@ -1,0 +1,38 @@
+
+.tut { max-width: 860px; margin: 0 auto; padding: 40px 24px 96px; font-size: 16px; line-height: 1.65; color: #1f2430; }
+.tut a { color: #4f46e5; }
+.tut .kicker { text-transform: uppercase; letter-spacing: .14em; font-size: 12px; font-weight: 700; color: #4f46e5; margin: 0 0 8px; }
+.tut h1 { font-size: 34px; line-height: 1.2; margin: 0 0 10px; }
+.tut .lede { font-size: 18px; color: #57606b; margin: 0 0 6px; }
+.tut .meta { font-size: 13px; color: #8a919b; margin-bottom: 36px; }
+.tut h2 { font-size: 24px; margin: 56px 0 6px; padding-top: 20px; border-top: 1px solid #e8eaee; }
+.tut h3 { font-size: 18px; margin: 34px 0 8px; }
+.tut h3 .step { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; margin-right: 10px; border-radius: 8px; background: #eef2ff; color: #4f46e5; font-size: 14px; font-weight: 700; }
+.tut p { margin: 10px 0; }
+.tut pre { background: #14171f; color: #e6e9ef; border-radius: 10px; padding: 16px 18px; overflow-x: auto; font-size: 13px; line-height: 1.55; margin: 14px 0 20px; }
+.tut code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; }
+.tut p code, .tut li code, .tut td code { background: #f0f1f4; color: #24292f; border-radius: 5px; padding: 1px 6px; font-size: 13.5px; }
+.tut .file { display: inline-block; background: #eef2ff; color: #3b3f8f; font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; border-radius: 6px 6px 0 0; padding: 4px 12px; margin-bottom: -14px; }
+.tut .callout { border: 1px solid #dfe3ff; background: #f6f7ff; border-radius: 10px; padding: 14px 18px; margin: 18px 0; font-size: 14.5px; }
+.tut .callout.warn { border-color: #f4dfc3; background: #fffaf1; }
+.tut .callout b:first-child { display: block; margin-bottom: 4px; }
+.tut table { border-collapse: collapse; width: 100%; margin: 16px 0 22px; font-size: 14px; }
+.tut th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: #8a919b; padding: 8px 10px; border-bottom: 2px solid #e8eaee; }
+.tut td { padding: 9px 10px; border-bottom: 1px solid #eef0f3; vertical-align: top; }
+.tut ul { padding-left: 22px; }
+.tut li { margin: 5px 0; }
+.tut .toc { background: #fafbfc; border: 1px solid #e8eaee; border-radius: 10px; padding: 16px 20px; font-size: 14.5px; }
+.tut .toc b { display: block; margin-bottom: 6px; }
+.tut .toc ol { margin: 6px 0 0; padding-left: 20px; }
+.tut .loop { text-align: center; font-size: 15px; background: #fafbfc; border: 1px solid #e8eaee; border-radius: 10px; padding: 14px; margin: 20px 0; }
+.tut details.demo { border: 1px solid #e8eaee; border-radius: 10px; margin: 18px 0; background: #fafbfc; }
+.tut details.demo > summary { cursor: pointer; padding: 12px 16px; font-weight: 600; list-style: none; }
+.tut details.demo > summary::before { content: "▸ "; color: #4f46e5; }
+.tut details.demo[open] > summary::before { content: "▾ "; }
+.tut .demo-body { padding: 0 16px 16px; }
+.tut .demo-frames { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.tut .demo-frames.single { grid-template-columns: 1fr; }
+.tut .demo-frames figure { margin: 0; }
+.tut .demo-frames figcaption { font-size: 12px; color: #8a919b; margin-bottom: 6px; }
+.tut .demo-frames iframe { width: 100%; height: 420px; border: 1px solid #e4e6eb; border-radius: 8px; background: #fff; }
+@media (max-width: 900px) { .tut .demo-frames { grid-template-columns: 1fr; } }

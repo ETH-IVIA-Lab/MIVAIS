@@ -1,0 +1,36 @@
+id: ex3-rank
+type: va_interaction
+variant: default
+prompt_md: |
+  ## Build **your personal top three**
+  Drag candidates into your preferred order until you are happy
+  with the top three. Mix and match weights however you want.
+timer_seconds: 300
+
+# Fresh start for the personal-ranking exercise: clear any user_preference_ranking
+# leftover from ex1/ex2 but keep the dataset + nudges-driven weights so the
+# participant doesn't lose their tuning.
+world_state:
+  mode: replace
+  initial:
+    user_preference_ranking: {}
+    display_order: []
+    ranked_items: []
+
+task_steps:
+  - id: explore
+    label: "Explore the dataset"
+  - id: rank
+    label: "Drag cars into order"
+    # Tick when the user submits at least one ranking action.
+    auto_check_on:
+      event_type: user_action
+      meta:
+        action: submit_ranking
+  - id: confirm
+    label: "Settle on a top three"
+mivais_config:
+  logging_id: ex3-rank
+answer:
+  type: capture_state
+  world_state_key: user_preference_ranking

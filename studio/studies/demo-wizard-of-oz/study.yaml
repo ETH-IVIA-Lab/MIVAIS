@@ -1,0 +1,76 @@
+# Wizard-of-Oz, one VA: the "AI advisor" is secretly a human.
+#
+# Exercises the WoZ machinery: a wizard role with wizard_panel (chat/state
+# injection controls beside the VA), per-role prompts (the wizard reads
+# puppeteering instructions the subject never sees), per-role world state,
+# admin/wizard-driven advance, and a deception debrief. Mint cohort codes on
+# the study page — the wizard gets the wizard-role code.
+
+id: demo-wizard-of-oz
+name: "Demo — Wizard of Oz (human-puppeteered advisor)"
+version: 1
+
+mode: multiplayer
+participants_required: 2
+advance_policy: all
+
+roles:
+  - id: subject
+    name: "Participant"
+    description: "Uses PODIUM; believes the advisor is an AI."
+    agent_id: analyst
+    capacity: 1
+    selectable: true
+    color: "#2563eb"
+  - id: wizard
+    name: "Wizard"
+    description: "Impersonates the advisor agent. Never acts as the participant."
+    agent_id: analyst
+    capacity: 1
+    selectable: true
+    color: "#ca8a04"
+    wizard_panel: true       # renders the injection panel beside the VA
+
+consent_text_md: |
+  ## Consent
+  You will use a ranking tool that includes an **automated advisor**, and
+  answer questions about the experience afterwards. Screen and microphone
+  are recorded. (A full debrief follows at the end of the session.)
+
+va:
+  system: podium
+  external: true
+  iframe_url: "{external_base}/"
+  health_check_url: "{external_health_base}/state"
+
+recording:
+  audio: per_participant
+  video: screen
+  transcribe: true
+  whisper_model: tiny
+
+replay:
+  event_types:
+    - match: { event_type: user_action, meta: { action: compute_weights } }
+      category: ranking
+      label: "computed weights"
+    - match: { event_type: user_action, meta: { action: rank_all } }
+      category: ranking
+      label: "ranked all items"
+    - match: { event_type: user_action, meta: { action: drop_order } }
+      category: ranking
+      label: "reordered items"
+    - match: { event_type: user_action, meta: { action: set_nudges } }
+      category: ranking
+      label: "adjusted weight nudges"
+    - match: { event_type: user_action, meta: { action: drag_update } }
+      category: cursor
+      label: "dragged item"
+
+blocks:
+  - id: intro
+    tasks: [brief]
+  - id: main
+    tasks: [advised-ranking, trust-slider, turing-guess]
+  - id: outro
+    tasks: [debrief]

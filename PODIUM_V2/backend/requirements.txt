@@ -1,0 +1,12 @@
+# MIVAIS infrastructure (sibling repo, installed editably).
+# When running locally:   pip install -e ../../MIVAIS
+# When building Docker:   the build context is MAIN/, so this path resolves to ./MIVAIS.
+-e file:../../MIVAIS
+
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+websockets>=12.0
+pandas>=2.0.0
+numpy>=1.26.0
+scikit-learn>=1.4.0
+openai>=1.40.0

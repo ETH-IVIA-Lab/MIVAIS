@@ -1,0 +1,35 @@
+# Warm-up in the VA: touch each linked view once. The onboarding detector
+# watches exactly this — participants who skip views get proactive tips.
+id: orient
+type: va_interaction
+prompt_md: |
+  ## Get oriented
+  Take a moment to explore the interface. Click a **hexagon** on the map,
+  **brush** a range on the timeline, and add a **keyword filter** in the
+  message list. Watch how all views stay linked.
+timer_seconds: 180
+
+task_steps:
+  - id: hex
+    label: "Select a hexagon on the map"
+    required: true
+    mode: auto              # must be done IN the VA — not manually tickable
+    auto_check_on:
+      event_type: user_action
+      meta: { action: select_hexagon }
+  - id: brush
+    label: "Brush a time range on the timeline"
+    mode: auto              # must be done IN the VA — not manually tickable
+    auto_check_on:
+      event_type: user_action
+      meta: { action: set_time_range }
+  - id: keyword
+    label: "Add a keyword filter"
+    mode: auto              # must be done IN the VA — not manually tickable
+    auto_check_on:
+      event_type: user_action
+      meta: { action: set_keyword_filter }
+
+answer:
+  type: capture_state
+  world_state_key: focused_view

@@ -1,0 +1,17 @@
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/.venv
+**/venv
+**/.mypy_cache
+**/.pytest_cache
+**/.ruff_cache
+**/.DS_Store
+**/*.log
+
+# Recorded sessions from local runs
+backend/recordings
+
+# Git
+.git
+.gitignore

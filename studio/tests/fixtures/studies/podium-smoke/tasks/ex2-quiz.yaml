@@ -1,0 +1,9 @@
+id: ex2-quiz
+type: free_text
+with_va: true                          # keep PODIUM visible while writing
+prompt_md: |
+  ## Which car did you pick, and why?
+  One sentence is enough. PODIUM stays on the left.
+min_chars: 5
+max_chars: 400
+rows: 3

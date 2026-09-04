@@ -1,0 +1,7 @@
+id: thanks
+type: info_screen
+body_md: |
+  ## Done — thank you!
+  The export now contains your captured **weights** (Tool A) and your
+  captured **chart specification** (Tool B), side by side, per participant.
+continue_label: "Finish"

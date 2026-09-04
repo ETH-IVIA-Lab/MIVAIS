@@ -1,0 +1,58 @@
+# Caddyfile recipe for hosting MIVAIS Studio behind TLS.
+#
+# Caddy obtains a Let's Encrypt certificate automatically. Once this is in
+# place, browsers stop refusing `getUserMedia` (audio capture) on non-localhost
+# origins, and the MIVAIS Gateway's WebSocket handshakes survive proxies.
+#
+# Usage (Linux/macOS host):
+#   sudo caddy run --config /path/to/this/Caddyfile
+#
+# On Windows / WSL:
+#   caddy.exe run --config Caddyfile
+#
+# Replace `studio.your-lab.example` with your hostname.
+
+studio.your-lab.example {
+    encode zstd gzip
+
+    # Studio's uvicorn process — adjust port if you change it in .env / studio.main.
+    reverse_proxy localhost:8000 {
+        # WebSockets used by the participant page polling + the (browser-side)
+        # connection to the embedded MIVAIS VA iframe go through fine because
+        # Caddy upgrades automatically. No special directive needed.
+    }
+
+    # Hard cap on incoming audio chunks (5 MB matches the server-side check).
+    request_body /ingest/audio-chunk {
+        max_size 6MB
+    }
+
+    # Optional rate limit on the audio ingest endpoint. The `caddy-ratelimit`
+    # plugin is required for this stanza — comment it out if you haven't
+    # installed the plugin.
+    # rate_limit {
+    #     zone audio_ingest {
+    #         match { path /ingest/audio-chunk }
+    #         key   {remote_host}
+    #         events 20
+    #         window 10s
+    #     }
+    # }
+
+    # Prometheus scrape: bind /metrics to your monitoring network only.
+    # Trust X-Forwarded-For from your Prometheus host; everything else is denied.
+    handle /metrics {
+        @prometheus_only remote_ip 10.0.0.0/8 127.0.0.1
+        reverse_proxy localhost:8000 {
+            header_up X-Forwarded-For {http.request.remote.host}
+        }
+        respond @prometheus_only 200
+        respond 403
+    }
+
+    # Plain-text logs to stdout; pipe to your shipper of choice.
+    log {
+        output stdout
+        format json
+    }
+}

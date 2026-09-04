@@ -1,0 +1,35 @@
+
+users:
+- role: analyst
+  description: Primary participant. Picks the attributes to plot and can chat.
+  can_read: []
+  can_write:
+  - selected_attributes
+  bus_publish_topics:
+  - chat.message
+  bus_subscribe_topics:
+  - chat.message
+- role: observer
+  description: Read-only spectator. Sees the live state and the chat, changes nothing.
+  can_read: []
+  can_write: []
+  bus_publish_topics: []
+  bus_subscribe_topics:
+  - chat.message
+agents:
+- agent_id: insight_agent
+  class: InsightAgent
+  role: advisor
+  enabled: true
+  description: Watches the attribute selection and comments on the correlation.
+  can_read:
+  - dataset
+  - selected_attributes
+  can_write:
+  - insight
+  bus_publish_topics:
+  - chat.message
+  bus_subscribe_topics: []
+  params:
+    strong_threshold: 0.7
+    moderate_threshold: 0.4

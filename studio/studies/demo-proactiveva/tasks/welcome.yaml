@@ -1,0 +1,16 @@
+id: welcome
+type: info_screen
+body_md: |
+  ## Welcome
+
+  You will investigate a simulated crisis in the city of **Abila** using
+  **{{ params.tool_name }}**: a map, a timeline, a live message stream, and an
+  entity graph, all linked. An **AI assistant** watches how you work — it may
+  offer onboarding tips, suggest views when you seem stuck, and flag possible
+  errors in your notes. You decide whether to accept or dismiss its
+  suggestions.
+
+  The study takes {{ params.study_duration }}. Please think aloud — your
+  microphone and screen are being recorded.
+continue_label: "Let's start"
+min_view_seconds: 5

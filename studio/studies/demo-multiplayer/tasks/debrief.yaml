@@ -1,0 +1,9 @@
+id: debrief
+type: info_screen
+body_md: |
+  ## Thanks, both of you!
+
+  In the replay the researcher now sees a **lane per participant** plus the
+  ranking agent, can switch between your two screen recordings (camera icon
+  marks whose eyes they look through), and reads the shared chat in context.
+continue_label: "Finish"

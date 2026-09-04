@@ -1,0 +1,13 @@
+# FEATURE: single_choice with ground truth (scored quiz question).
+id: quiz-top-car
+type: single_choice
+prompt_md: |
+  ## From memory
+  Which car family ended up at the **top** of your mpg-focused ranking?
+options:
+  - { id: japanese_compacts, label: "Japanese compacts (Corolla, Civic, Tercel)" }
+  - { id: american_muscle,   label: "American muscle (Chevelle, Torino)" }
+  - { id: german_luxury,     label: "German luxury (BMW, Mercedes)" }
+ground_truth:
+  type: exact
+  value: japanese_compacts

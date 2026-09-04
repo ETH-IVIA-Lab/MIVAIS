@@ -1,0 +1,30 @@
+# Shared NASA-TLX questionnaire (standard 6 dimensions, 1–7 likert).
+#
+# Imported into any study with:
+#
+#   - $ref: ../_lib/tasks/nasa-tlx.yaml
+#
+# A study may override individual fields by listing them alongside `$ref:`
+# (the loader shallow-merges over the imported task):
+#
+#   - $ref: ../_lib/tasks/nasa-tlx.yaml
+#     prompt_md: "Rate the **PODIUM exercise** you just completed:"
+#
+id: nasa-tlx
+type: likert
+prompt_md: |
+  ## Workload self-report
+  Please rate the task you just completed on each dimension.
+scale:
+  min: 1
+  max: 7
+  min_label: "Very low"
+  max_label: "Very high"
+items:
+  - { id: mental_demand,   label: "Mental demand",   description: "How mentally demanding was the task?" }
+  - { id: physical_demand, label: "Physical demand", description: "How physically demanding was the task?" }
+  - { id: temporal_demand, label: "Temporal demand", description: "How hurried or rushed was the pace?" }
+  - { id: performance,     label: "Performance",     description: "How successful were you in accomplishing what you were asked to do?", reverse: true }
+  - { id: effort,          label: "Effort",          description: "How hard did you have to work to accomplish your level of performance?" }
+  - { id: frustration,     label: "Frustration",     description: "How insecure, discouraged, irritated, stressed, and annoyed were you?" }
+tags: [nasa-tlx, workload]

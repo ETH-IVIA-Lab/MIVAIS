@@ -1,0 +1,21 @@
+# FEATURE: info_screen + min_view_seconds + per-language body + params.
+id: welcome
+type: info_screen
+body_md: |
+  ## Welcome
+
+  You will explore a small car dataset with **{{ params.tool_name }}**, a
+  mixed-initiative ranking tool: you drag cars into your preferred order and
+  adjust attribute weights; a ranking agent recomputes the order as you do.
+
+  The study takes {{ params.study_duration }}. Please think aloud — your
+  microphone and screen are being recorded.
+body_md_by_lang:
+  de: |
+    ## Willkommen
+
+    Sie erkunden einen kleinen Auto-Datensatz mit **{{ params.tool_name }}**.
+    Die Studie dauert {{ params.study_duration }}. Bitte denken Sie laut —
+    Bildschirm und Mikrofon werden aufgezeichnet.
+continue_label: "Let's start"
+min_view_seconds: 5

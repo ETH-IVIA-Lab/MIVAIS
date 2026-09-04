@@ -1,0 +1,89 @@
+# Multiplayer, one VA: two analysts collaborate in ONE shared world.
+#
+# Exercises everything cohort-specific: participants_required + lobby, named
+# selectable roles with capacity and colors, cohort codes (mint them with the
+# "+ Mint cohort" button on the study page — one code per role, same lobby),
+# advance policies (all / first / admin, with a timeout), presence, shared
+# world state, per-participant audio, and the multi-POV replay (one screen
+# recording per participant, camera icon on the lane you are watching).
+
+id: demo-multiplayer
+name: "Demo — multiplayer collaboration (shared world)"
+version: 1
+
+mode: multiplayer
+participants_required: 2
+
+# Every participant must submit before the cohort advances (per-task overrides below).
+advance_policy: all
+
+roles:
+  - id: analyst-a
+    name: "Analyst A"
+    description: "Drives the weight adjustments."
+    agent_id: analyst
+    capacity: 1
+    selectable: true
+    color: "#2563eb"
+  - id: analyst-b
+    name: "Analyst B"
+    description: "Drives the drag-to-rank ordering."
+    agent_id: analyst
+    capacity: 1
+    selectable: true
+    color: "#16a34a"
+
+consent_text_md: |
+  ## Consent
+  You will work **together with another participant** in one shared ranking
+  tool — you both see the same state, live, including each other's cursors
+  and a shared chat. Screen and microphone are recorded per participant.
+
+va:
+  system: podium
+  external: true
+  iframe_url: "{external_base}/"
+  health_check_url: "{external_health_base}/state"
+  # room_per_session (default): the COHORT shares one room — that is what
+  # makes the world shared; each singleplayer session would get its own.
+
+recording:
+  audio: per_participant
+  video: screen
+  transcribe: true
+  whisper_model: tiny
+
+# How PODIUM's own interactions read on the admin session-replay timeline
+# (color + label per action, plus a filter chip). Studio ships a sane
+# built-in fallback for this vocabulary even without this block; declaring
+# it here just makes it something this study owns and can edit, rather than
+# something only a Studio code change could touch.
+replay:
+  event_types:
+    - match: { event_type: user_action, meta: { action: compute_weights } }
+      category: ranking
+      label: "computed weights"
+    - match: { event_type: user_action, meta: { action: rank_all } }
+      category: ranking
+      label: "ranked all items"
+    - match: { event_type: user_action, meta: { action: drop_order } }
+      category: ranking
+      label: "reordered items"
+    - match: { event_type: user_action, meta: { action: set_nudges } }
+      category: ranking
+      label: "adjusted weight nudges"
+    - match: { event_type: user_action, meta: { action: drag_update } }
+      category: cursor
+      label: "dragged item"
+
+blocks:
+  - id: intro
+    tasks: [welcome, roles-brief]
+  - id: collab
+    tasks: [joint-ranking, agree-check]
+  - id: outro
+    tasks:
+      - $ref: ../_lib/tasks/nasa-tlx.yaml
+        prompt_md: "## Workload\nRate the **joint ranking exercise**:"
+      - partner-rating
+      - debrief

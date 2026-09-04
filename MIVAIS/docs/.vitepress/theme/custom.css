@@ -1,0 +1,57 @@
+:root {
+  --vp-c-brand-1: #1e6fc7;
+  --vp-c-brand-2: #1a5fa8;
+  --vp-c-brand-3: #164e8a;
+  --vp-c-brand-soft: rgba(30, 111, 199, 0.12);
+
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(135deg, #1e6fc7 0%, #3d9cd9 100%);
+
+  --vp-home-hero-image-background-image: linear-gradient(135deg, #1e6fc715 0%, #3d9cd915 100%);
+  --vp-home-hero-image-filter: blur(44px);
+}
+
+.dark {
+  --vp-c-brand-1: #4fa3e8;
+  --vp-c-brand-2: #3d9cd9;
+  --vp-c-brand-3: #2d8bc8;
+  --vp-c-brand-soft: rgba(79, 163, 232, 0.12);
+}
+
+/* Code block refinements */
+.vp-doc div[class*='language-'] {
+  border-radius: 8px;
+}
+
+/* API table styling */
+.vp-doc table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.vp-doc table th {
+  background-color: var(--vp-c-bg-soft);
+  font-weight: 600;
+}
+
+.vp-doc table td code,
+.vp-doc table th code {
+  font-size: 0.85em;
+}
+
+/* Tighter parameter blocks */
+.vp-doc h4 + table {
+  margin-top: 0.5rem;
+}
+
+/* Feature grid refinement on landing page */
+.VPFeature .title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.VPFeature .details {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--vp-c-text-2);
+}

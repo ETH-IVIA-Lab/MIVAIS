@@ -1,0 +1,119 @@
+{
+  "task": "Identify as many public-safety risk events as possible from a stream of microblog posts and call-center records on the evening of 2014-01-23 in Abila, Kronos. For each event, extract: time, location, people involved, and a short characterisation.",
+  "system_introduction": "ProactiveVA system for VAST 2021 MC3.\nIt contains five linked views:\n  Map        \u2014 hexagon-grid heatmap of message volume, plus call-center incident markers. Click a hexagon to filter messages to that area; click again to deselect and see ungeotagged messages.\n  Timeline   \u2014 message volume over time with sentiment colouring. Brush to filter messages by time range.\n  Messages   \u2014 scrollable feed of microblog and call-center records. Hover to highlight; click to add a keyword filter.\n  Graph      \u2014 entity-relation graph and key-entity word cloud. Click a node to filter messages mentioning that entity.\n  Notes      \u2014 analyst's findings (title, label, view screenshot). The assistant may comment on note accuracy.",
+  "available_operations": [
+    {
+      "name": "read_data",
+      "args": {
+        "view": "map|timeline|messages|graph",
+        "filter": "optional dict"
+      },
+      "description": "Read summary data from a view."
+    },
+    {
+      "name": "select",
+      "args": {
+        "view": "map|timeline|messages|graph",
+        "element": "id"
+      },
+      "description": "Select an element (hexagon id, message id, entity, \u2026)."
+    },
+    {
+      "name": "filter",
+      "args": {
+        "channel": "time|hex|entity|keyword",
+        "value": "any"
+      },
+      "description": "Apply a filter to all linked views."
+    },
+    {
+      "name": "highlight",
+      "args": {
+        "message_ids": "list[str]"
+      },
+      "description": "Visually highlight a set of messages."
+    },
+    {
+      "name": "add_finding",
+      "args": {
+        "title": "str",
+        "label": "str",
+        "view": "str",
+        "evidence": "list[str]"
+      },
+      "description": "Append a finding to the Notes view."
+    },
+    {
+      "name": "reply",
+      "args": {
+        "message": "str"
+      },
+      "description": "Send the final confirmation back to the user."
+    }
+  ],
+  "interaction_patterns": [
+    {
+      "pattern": "hover_messages_scrolling_fast",
+      "category": "onboarding",
+      "subcategory": "data_transformation",
+      "interpretation": "User scrolls through the message list very quickly, hovering many items.",
+      "tip_template": "Provide explanation of how messages are aggregated into the timeline / map heat."
+    },
+    {
+      "pattern": "long_pause_on_graph_node",
+      "category": "onboarding",
+      "subcategory": "visual_mapping",
+      "interpretation": "User pauses on a node in the entity graph for a long time without interacting.",
+      "tip_template": "Provide explanation of the graph encoding (node size, edge meaning)."
+    },
+    {
+      "pattern": "select_keyword_no_timeline_followup",
+      "category": "onboarding",
+      "subcategory": "interaction_method",
+      "interpretation": "User selects a keyword in the Messages view but does not move on to the timeline.",
+      "tip_template": "Hint that clicking a keyword can be combined with the timeline brush."
+    },
+    {
+      "pattern": "hesitant_keyword_selection",
+      "category": "exploration",
+      "subcategory": "data_meaning",
+      "interpretation": "User selects a keyword, undoes it, selects another, slowly.",
+      "tip_template": "Summarise what messages mentioning the keyword have in common."
+    },
+    {
+      "pattern": "browse_messages_no_action",
+      "category": "exploration",
+      "subcategory": "large_data",
+      "interpretation": "User scrolls through many messages without selecting, filtering, or noting.",
+      "tip_template": "Identify and surface the most important features in the current message set."
+    },
+    {
+      "pattern": "compare_time_ranges_slowly",
+      "category": "exploration",
+      "subcategory": "compare_data",
+      "interpretation": "User repeatedly switches the time-brush range without progressing.",
+      "tip_template": "Compare the two ranges and highlight similarities/differences for the user."
+    },
+    {
+      "pattern": "review_timeline_repeatedly",
+      "category": "verification",
+      "subcategory": "incompleteness",
+      "interpretation": "User keeps revisiting the timeline as if checking that nothing was missed.",
+      "tip_template": "Remind the user of any time gaps not covered by their notes."
+    },
+    {
+      "pattern": "explore_previous_path_repeatedly",
+      "category": "verification",
+      "subcategory": "contradiction",
+      "interpretation": "User retraces an earlier exploration path, suggesting a possible conflict.",
+      "tip_template": "Check whether any submitted notes contradict each other."
+    },
+    {
+      "pattern": "switch_views_slowly",
+      "category": "verification",
+      "subcategory": "inaccuracy",
+      "interpretation": "User toggles between views slowly, attempting to verify a fact.",
+      "tip_template": "Verify the current finding against the underlying data."
+    }
+  ]
+}

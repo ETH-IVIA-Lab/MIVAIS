@@ -1,0 +1,7 @@
+id: thanks
+type: info_screen
+body_md: |
+  ## Thank you
+
+  That is the end of the study. You may now close this tab.
+continue_label: "Finish"

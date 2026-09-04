@@ -1,0 +1,9 @@
+id: thanks
+type: info_screen
+body_md: |
+  ## Done — thank you!
+
+  Every map click, timeline brush, note, and assistant suggestion from this
+  session is on one replayable timeline in the admin dashboard — including
+  which suggestions you accepted and which you dismissed.
+continue_label: "Finish"

@@ -1,0 +1,11 @@
+id: welcome
+type: info_screen
+body_md: |
+  ## Welcome
+
+  On the next screen you will see a **scatterplot of 24 classic cars**.
+  You can choose which attribute is shown on each axis. An assistant
+  agent watches your choices and comments on what it sees.
+
+  Explore freely — there is one small task, then a single question.
+continue_label: "Start"

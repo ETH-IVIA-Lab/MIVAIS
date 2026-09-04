@@ -1,0 +1,23 @@
+# A canonical attention check. Drops the participant if they answer wrong.
+#
+# Pair this with a branch:
+#
+#   $ref: ../_lib/tasks/attention-check.yaml
+#   next:
+#     - when: "not correct"
+#       goto: { action: drop }
+#
+id: attention-check
+type: single_choice
+prompt_md: |
+  ## Quick check
+  To help us verify you are paying attention, please choose **"red"** below.
+options:
+  - { id: red,    label: "Red" }
+  - { id: green,  label: "Green" }
+  - { id: blue,   label: "Blue" }
+  - { id: yellow, label: "Yellow" }
+ground_truth:
+  type: exact
+  value: red
+tags: [attention_check]

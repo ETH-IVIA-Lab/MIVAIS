@@ -1,0 +1,236 @@
+<!doctype html>
+<!-- Starter VA frontend — one file, no build step, no framework.
+
+     It speaks the three-message MIVAIS protocol:
+       receive  {type:"initial_state"|"state_update", world_state, connected_users, my_permissions}
+       receive  {type:"bus_message", message:{topic, payload}}      (chat)
+       send     {action:"...", ...}                                  (user actions)
+
+     It also relays every user action and state update to a parent frame via
+     postMessage (source:"mivais-va"), so MIVAIS Studio can record the session
+     when this app is embedded in a study — see /setup on Studio. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Starter VA — mixed-initiative scatterplot</title>
+<style>
+  :root {
+    --ink: #1f2430; --sub: #6b7280; --line: #e4e6eb; --bg: #f7f7f8;
+    --accent: #4f46e5; --agent: #2f5d32; --agent-bg: #eaf4e8;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, "Segoe UI", sans-serif; color: var(--ink); background: var(--bg); }
+  header { display: flex; align-items: center; gap: 12px; padding: 12px 20px; background: #fff; border-bottom: 1px solid var(--line); }
+  header h1 { font-size: 16px; margin: 0; }
+  .badge { font-size: 12px; padding: 2px 10px; border-radius: 999px; background: #eef2ff; color: var(--accent); font-weight: 600; }
+  .spacer { flex: 1; }
+  .muted { color: var(--sub); font-size: 12.5px; }
+  main { display: grid; grid-template-columns: 280px 1fr; gap: 16px; padding: 16px 20px; max-width: 1200px; margin: 0 auto; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+  .card h2 { font-size: 12px; margin: 0 0 10px; color: var(--sub); text-transform: uppercase; letter-spacing: .08em; }
+  label { display: block; font-size: 12.5px; color: var(--sub); margin: 10px 0 4px; }
+  select { width: 100%; padding: 7px 8px; border: 1px solid var(--line); border-radius: 8px; font-size: 14px; background: #fff; }
+  select:disabled { background: var(--bg); color: var(--sub); }
+  #insight { margin-top: 14px; padding: 12px; border-radius: 8px; background: var(--agent-bg); border: 1px solid #cfe3cb; font-size: 13.5px; line-height: 1.5; display: none; }
+  #insight .who { font-size: 11px; font-weight: 700; color: var(--agent); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+  #plot-card { grid-row: span 2; }
+  svg { width: 100%; height: auto; display: block; }
+  .dot { fill: var(--accent); opacity: .75; }
+  .dot:hover { opacity: 1; }
+  .axis-label { font-size: 11px; fill: var(--sub); }
+  .tick line { stroke: var(--line); }
+  .tick text { font-size: 10px; fill: var(--sub); }
+  #chat-log { max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+  .msg { font-size: 13px; line-height: 1.45; padding: 6px 10px; border-radius: 8px; background: var(--bg); }
+  .msg.agent { background: var(--agent-bg); }
+  .msg .from { font-weight: 700; font-size: 11.5px; margin-right: 6px; }
+  .msg.agent .from { color: var(--agent); }
+  .chat-row { display: flex; gap: 8px; }
+  .chat-row input { flex: 1; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 13.5px; }
+  .chat-row button { padding: 7px 14px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; font-weight: 600; cursor: pointer; }
+  .chat-row button:disabled { background: var(--line); cursor: default; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Starter VA</h1>
+  <span class="badge" id="role-badge">connecting…</span>
+  <span class="spacer"></span>
+  <span class="muted" id="presence"></span>
+</header>
+
+<main>
+  <div>
+    <div class="card">
+      <h2>Encoding</h2>
+      <label for="sel-x">x-axis</label>
+      <select id="sel-x"></select>
+      <label for="sel-y">y-axis</label>
+      <select id="sel-y"></select>
+      <div id="insight"><div class="who">insight agent</div><div id="insight-text"></div></div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <h2>Chat</h2>
+      <div id="chat-log"></div>
+      <div class="chat-row">
+        <input id="chat-input" placeholder="Say something…" maxlength="300">
+        <button id="chat-send">Send</button>
+      </div>
+    </div>
+  </div>
+  <div class="card" id="plot-card">
+    <h2 id="plot-title">Scatterplot</h2>
+    <svg id="plot" viewBox="0 0 640 480"></svg>
+  </div>
+</main>
+
+<script>
+"use strict";
+
+// ── Connection ───────────────────────────────────────────────────────────────
+const qs      = new URLSearchParams(location.search);
+const role    = qs.get("role") || "analyst";
+const uid     = "u_" + Math.random().toString(36).slice(2, 10);
+const wsProto = location.protocol === "https:" ? "wss:" : "ws:";
+const ws      = new WebSocket(`${wsProto}//${location.host}/ws/${uid}?role=${encodeURIComponent(role)}`);
+
+let state = {};          // latest world_state
+let canWriteSel = false; // permission: may this role change the selection?
+let canChat = false;
+
+// ── Relay to MIVAIS Studio (when embedded in a study iframe) ────────────────
+function relayToHarness(event) {
+  try {
+    if (window.parent && window.parent !== window && event) {
+      window.parent.postMessage({ source: "mivais-va", kind: "va_event", event }, "*");
+    }
+  } catch (e) { /* no parent listener — standalone use, ignore */ }
+}
+
+function send(obj) {
+  if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(obj));
+  if (obj && obj.action) relayToHarness({ type: "user_action", action: obj.action, data: obj });
+}
+
+// ── Incoming messages ────────────────────────────────────────────────────────
+ws.onmessage = (ev) => {
+  const msg = JSON.parse(ev.data);
+
+  if (msg.type === "initial_state" || msg.type === "state_update") {
+    state = Object.assign(state, msg.world_state || {});
+    if (msg.my_permissions) {
+      canWriteSel = (msg.my_permissions.can_write || []).includes("selected_attributes");
+      canChat = (msg.my_permissions.bus_publish_topics || []).includes("chat.message");
+      document.getElementById("role-badge").textContent = msg.my_permissions.role || role;
+      document.getElementById("chat-send").disabled = !canChat;
+      document.getElementById("chat-input").disabled = !canChat;
+      (msg.chat_history || []).forEach(m => addChat(m.payload || {}));
+    }
+    if (msg.connected_users) {
+      document.getElementById("presence").textContent =
+        msg.connected_users.length + " connected";
+    }
+    render();
+    // Mirror the (small) state to Studio for the replay timeline.
+    const slim = Object.assign({}, state); delete slim.dataset;
+    relayToHarness({ type: "state_update", world_state: slim });
+  }
+
+  if (msg.type === "bus_message" && msg.message && msg.message.topic === "chat.message") {
+    addChat(msg.message.payload || {});
+  }
+};
+ws.onclose = () => { document.getElementById("role-badge").textContent = "disconnected"; };
+
+// ── Rendering ────────────────────────────────────────────────────────────────
+const selX = document.getElementById("sel-x");
+const selY = document.getElementById("sel-y");
+
+function fillSelects() {
+  const cols = state.numeric_cols || [];
+  for (const sel of [selX, selY]) {
+    if (sel.options.length === cols.length) continue;
+    sel.innerHTML = "";
+    cols.forEach(c => { const o = document.createElement("option"); o.value = o.textContent = c; sel.appendChild(o); });
+  }
+  const cur = state.selected_attributes || {};
+  if (cur.x) selX.value = cur.x;
+  if (cur.y) selY.value = cur.y;
+  selX.disabled = selY.disabled = !canWriteSel;
+}
+
+function render() {
+  fillSelects();
+  drawPlot();
+  const ins = state.insight;
+  const box = document.getElementById("insight");
+  if (ins && ins.text) {
+    box.style.display = "block";
+    document.getElementById("insight-text").textContent = ins.text;
+  }
+}
+
+function drawPlot() {
+  const svg = document.getElementById("plot");
+  const data = state.dataset || [];
+  const sel = state.selected_attributes || {};
+  if (!data.length || !sel.x || !sel.y) return;
+  document.getElementById("plot-title").textContent = `${sel.y}  vs  ${sel.x}`;
+
+  const W = 640, H = 480, m = { t: 16, r: 16, b: 44, l: 56 };
+  const xs = data.map(d => d[sel.x]), ys = data.map(d => d[sel.y]);
+  const xmin = Math.min(...xs), xmax = Math.max(...xs);
+  const ymin = Math.min(...ys), ymax = Math.max(...ys);
+  const sx = v => m.l + (v - xmin) / (xmax - xmin || 1) * (W - m.l - m.r);
+  const sy = v => H - m.b - (v - ymin) / (ymax - ymin || 1) * (H - m.t - m.b);
+
+  let out = "";
+  for (let i = 0; i <= 4; i++) {                       // gridlines + ticks
+    const xv = xmin + (xmax - xmin) * i / 4, yv = ymin + (ymax - ymin) * i / 4;
+    out += `<g class="tick"><line x1="${sx(xv)}" y1="${m.t}" x2="${sx(xv)}" y2="${H - m.b}"/>` +
+           `<text x="${sx(xv)}" y="${H - m.b + 16}" text-anchor="middle">${Math.round(xv)}</text></g>`;
+    out += `<g class="tick"><line x1="${m.l}" y1="${sy(yv)}" x2="${W - m.r}" y2="${sy(yv)}"/>` +
+           `<text x="${m.l - 8}" y="${sy(yv) + 3}" text-anchor="end">${Math.round(yv)}</text></g>`;
+  }
+  for (const d of data) {                              // points
+    out += `<circle class="dot" cx="${sx(d[sel.x])}" cy="${sy(d[sel.y])}" r="6"><title>${d.name}</title></circle>`;
+  }
+  out += `<text class="axis-label" x="${(W + m.l - m.r) / 2}" y="${H - 8}" text-anchor="middle">${sel.x}</text>`;
+  out += `<text class="axis-label" x="14" y="${(H + m.t - m.b) / 2}" text-anchor="middle" transform="rotate(-90 14 ${(H + m.t - m.b) / 2})">${sel.y}</text>`;
+  svg.innerHTML = out;
+}
+
+// ── User actions ─────────────────────────────────────────────────────────────
+function onSelect() {
+  send({ action: "select_attributes", x: selX.value, y: selY.value });
+}
+selX.addEventListener("change", onSelect);
+selY.addEventListener("change", onSelect);
+
+function addChat(p) {
+  if (!p || !p.text) return;
+  const log = document.getElementById("chat-log");
+  const div = document.createElement("div");
+  const from = p.from || "?";
+  div.className = "msg" + (String(from).startsWith("user:") ? "" : " agent");
+  div.innerHTML = `<span class="from"></span><span class="text"></span>`;
+  div.querySelector(".from").textContent = String(from).replace(/^user:/, "");
+  div.querySelector(".text").textContent = p.text;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+document.getElementById("chat-send").addEventListener("click", () => {
+  const input = document.getElementById("chat-input");
+  const text = input.value.trim();
+  if (!text) return;
+  send({ action: "chat_message", text, to: "broadcast" });
+  input.value = "";
+});
+document.getElementById("chat-input").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") document.getElementById("chat-send").click();
+});
+</script>
+</body>
+</html>

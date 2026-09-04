@@ -1,0 +1,47 @@
+# The study that accompanies the /setup tutorial.
+#
+# It runs the Starter VA (Starter_VA/, the minimal mixed-initiative
+# scatterplot built on MIVAIS) as a SPAWNED, per-session instance: Studio
+# starts one `python main.py` per participant on a free port, passes the
+# port + recording directory in the environment, embeds the frontend in an
+# iframe, and tails the JSONL recording the instance writes. The Starter VA
+# contains no study-specific code — that is the point.
+
+id: starter-tutorial
+name: "Starter VA — tutorial study"
+version: 1
+
+mode: singleplayer
+
+consent_text_md: |
+  ## A two-minute demo study
+
+  You will use a small scatterplot tool to look at a classic car dataset,
+  then answer one question. Your interactions are recorded under an
+  anonymous identifier for demonstration purposes. Continue when ready.
+
+va:
+  system: starter
+  # Spawn one private instance per session. {port} and {recording_dir} are
+  # filled in by Studio; the app also receives them as STUDIO_VA_PORT and
+  # STUDIO_VA_RECORDING_DIR in its environment.
+  spawn_cmd: "python main.py"
+  cwd: "../Starter_VA/backend"
+  iframe_url: "http://127.0.0.1:{port}/"
+  health_check_url: "http://127.0.0.1:{port}/state"
+  spawn_timeout_seconds: 30
+  variants:
+    default:
+      description: "Starter VA, one instance per session"
+
+recording:
+  audio: none
+  video: none
+
+blocks:
+  - id: intro
+    tasks: [welcome]
+  - id: main
+    tasks: [explore, question]
+  - id: outro
+    tasks: [thanks]

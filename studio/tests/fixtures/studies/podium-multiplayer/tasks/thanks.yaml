@@ -1,0 +1,7 @@
+id: thanks
+type: info_screen
+body_md: |
+  ## Thank you both
+
+  That's the end of the session. You can close this tab.
+continue_label: "Finish"

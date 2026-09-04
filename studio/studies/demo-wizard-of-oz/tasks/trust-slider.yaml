@@ -1,0 +1,11 @@
+id: trust-slider
+type: slider
+prompt_md: |
+  ## The advisor
+  How much did you **trust** the advisor's suggestions?
+min: 0
+max: 100
+step: 5
+min_label: "Not at all"
+max_label: "Fully"
+unit: "%"

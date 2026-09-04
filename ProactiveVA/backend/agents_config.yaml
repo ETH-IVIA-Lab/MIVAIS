@@ -1,0 +1,160 @@
+agents:
+- agent_id: onboarding_detector
+  role: perception
+  description: Help-needed-event detector for the onboarding category. Watches the
+    interaction stream and fires when behavioural patterns suggest unfamiliarity with the system (visual
+    mapping, data transformation, interaction method).
+  enabled: true
+  can_read:
+  - dataset
+  - data_fields
+  - interaction_log
+  - knowledge
+  - onboarding_enabled
+  - think_time_threshold_s
+  - focused_view
+  can_write: []
+  bus_publish_topics:
+  - help_needed.event
+  bus_subscribe_topics:
+  - interaction.event
+- agent_id: exploration_detector
+  role: perception
+  description: Help-needed-event detector for the exploration category. Watches
+    the interaction stream and fires when the user appears confused about data meaning, overwhelmed by
+    data volume, or struggling to compare across views.
+  enabled: true
+  can_read:
+  - dataset
+  - data_fields
+  - interaction_log
+  - knowledge
+  - exploration_enabled
+  - think_time_threshold_s
+  - selected_hex
+  - time_range
+  - selected_entity
+  - keyword_filter
+  - focused_view
+  can_write: []
+  bus_publish_topics:
+  - help_needed.event
+  bus_subscribe_topics:
+  - interaction.event
+- agent_id: verification_detector
+  role: perception
+  description: Help-needed-event detector for the verification category. Watches
+    the analyst's notes for factual errors, internal conflicts and task omissions.
+  enabled: true
+  can_read:
+  - dataset
+  - data_fields
+  - notes
+  - knowledge
+  - verification_enabled
+  - interaction_log
+  - think_time_threshold_s
+  can_write: []
+  bus_publish_topics:
+  - help_needed.event
+  - note.commented
+  bus_subscribe_topics:
+  - interaction.event
+- agent_id: planner
+  role: planner
+  description: Intent inference and suggestion planning. Receives help_needed.event
+    messages and produces a structured pending_suggestion (intent + tip/suggestion + optional plan).
+  enabled: true
+  can_read:
+  - dataset
+  - data_fields
+  - interaction_log
+  - knowledge
+  - selected_hex
+  - time_range
+  - selected_entity
+  - keyword_filter
+  - focused_view
+  - notes
+  - pending_suggestions
+  can_write:
+  - pending_suggestions
+  bus_publish_topics:
+  - pending_suggestion.new
+  bus_subscribe_topics:
+  - help_needed.event
+- agent_id: acting_agent
+  role: actor
+  description: ReAct-style reasoning and acting. Triggered when the user accepts a suggestion.
+    Iteratively reads data, applies selections / filters / highlights, and finally writes a finding to
+    the Notes view. Streams thoughts and operations on the bus so the Chat View can render them live.
+  enabled: true
+  can_read:
+  - dataset
+  - data_fields
+  - hexgrid
+  - entities
+  - knowledge
+  - focused_view
+  - selected_hex
+  - time_range
+  - selected_entity
+  - keyword_filter
+  - highlighted_message_ids
+  - notes
+  - pending_suggestions
+  - agent_trace
+  - agent_status
+  can_write:
+  - selected_hex
+  - time_range
+  - selected_entity
+  - keyword_filter
+  - highlighted_message_ids
+  - notes
+  - agent_trace
+  - agent_status
+  - pending_suggestions
+  bus_publish_topics:
+  - agent.trace
+  - chat.message
+  bus_subscribe_topics:
+  - suggestion.accepted
+  - chat.message
+roles:
+  analyst:
+    description: Full interactive role - the analyst from the paper.
+    can_read: []
+    can_write:
+    - selected_hex
+    - time_range
+    - selected_entity
+    - keyword_filter
+    - focused_view
+    - notes
+    - highlighted_message_ids
+    - staged_evidence
+    - think_time_threshold_s
+    - onboarding_enabled
+    - exploration_enabled
+    - verification_enabled
+    - pending_suggestions
+    bus_publish_topics:
+    - chat.message
+    - suggestion.accepted
+    - suggestion.rejected
+    bus_subscribe_topics:
+    - chat.message
+    - pending_suggestion.new
+    - agent.trace
+    - note.commented
+  observer:
+    description: Read-only - sees everything but cannot interact.
+    can_read: []
+    can_write: []
+    bus_publish_topics: []
+    bus_subscribe_topics:
+    - chat.message
+    - pending_suggestion.new
+    - agent.trace
+    - note.commented

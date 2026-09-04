@@ -1,0 +1,51 @@
+agents:
+- agent_id: recommendation_agent
+  type: recommender
+  role: recommender
+  enabled: true
+  can_read:
+  - dataset
+  - data_fields
+  - current_spec
+  - focus_view
+  can_write:
+  - related_summaries
+  - field_suggestions
+  - alt_encodings
+  bus_topics:
+  - chat.message
+  bus_subscribe_topics:
+  - recommendation.instruction
+- agent_id: insight_agent
+  type: analyst
+  role: insight
+  enabled: true
+  can_read:
+  - dataset
+  - data_fields
+  - filters
+  can_write:
+  - focus_view
+  - wildcard_results
+  - current_spec
+  - filters
+  bus_topics:
+  - chat.message
+  - recommendation.instruction
+  bus_subscribe_topics:
+  - insight.action_selected
+roles:
+  analyst:
+    can_write:
+    - current_spec
+    - bookmarks
+    - filters
+    bus_publish_topics:
+    - chat.message
+    bus_subscribe_topics:
+    - chat.message
+  observer:
+    can_write: []
+    bus_publish_topics: []
+    bus_subscribe_topics:
+    - chat.message

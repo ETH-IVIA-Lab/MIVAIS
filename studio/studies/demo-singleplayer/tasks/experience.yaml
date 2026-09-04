@@ -1,0 +1,11 @@
+# FEATURE: number_input (typed numeric answer with bounds + unit).
+id: experience
+type: number_input
+prompt_md: |
+  ## About you
+  How many **years of experience** do you have with data-analysis tools?
+min: 0
+max: 60
+step: 1
+unit: "years"
+placeholder: "0"

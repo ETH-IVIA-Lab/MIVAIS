@@ -1,0 +1,17 @@
+# FEATURE: multi_choice + set_match ground truth with partial credit.
+id: quiz-attributes
+type: multi_choice
+prompt_md: |
+  ## Attribute knowledge
+  Which of these attributes exist in the dataset? Select **all** that apply.
+options:
+  - { id: mpg,          label: "mpg" }
+  - { id: horsepower,   label: "horsepower" }
+  - { id: top_speed,    label: "top speed" }
+  - { id: weight,       label: "weight" }
+  - { id: price,        label: "price" }
+min_selected: 1
+ground_truth:
+  type: set_match
+  value: [mpg, horsepower, weight]
+  partial_credit: true

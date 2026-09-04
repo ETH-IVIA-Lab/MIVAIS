@@ -1,0 +1,9 @@
+id: preference
+type: single_choice
+prompt_md: |
+  ## Head to head
+  For understanding this dataset, which tool would you pick?
+options:
+  - { id: podium,  label: "Tool A — the ranking tool (PODIUM)" }
+  - { id: voyager, label: "Tool B — the chart tool (Voyager 2)" }
+  - { id: both,    label: "Both, for different questions" }

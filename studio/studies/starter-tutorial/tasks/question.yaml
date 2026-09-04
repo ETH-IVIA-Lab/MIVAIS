@@ -1,0 +1,9 @@
+id: question
+type: single_choice
+prompt_md: |
+  ## Which pair did the assistant call the *strongest* relationship?
+options:
+  - { id: hp_mpg,     label: "horsepower and mpg" }
+  - { id: weight_mpg, label: "weight and mpg" }
+  - { id: acc_year,   label: "acceleration and year" }
+  - { id: none_found, label: "I did not find a strong pair" }

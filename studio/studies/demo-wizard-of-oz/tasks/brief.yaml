@@ -1,0 +1,17 @@
+# FEATURE: prompt_md_by_role — the wizard reads instructions the subject
+# never sees
+id: brief
+type: info_screen
+body_md: |
+  ## Before you start
+  The tool includes an automated advisor that may comment on your ranking.
+  Work naturally and think aloud.
+prompt_md_by_role:
+  wizard: |
+    ## Wizard briefing (the subject cannot see this)
+    You ARE the advisor. Use the wizard panel next to the VA:
+    - reply in the advisor's voice within ~10 s of a weight change
+    - push a `weights` suggestion once, mid-task
+    - NEVER write as the participant, never reveal yourself
+    You control the pace: advance the cohort when the subject has submitted.
+continue_label: "Begin"

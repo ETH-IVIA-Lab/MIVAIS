@@ -1,0 +1,45 @@
+id: ex1-find-mpg
+type: va_interaction
+variant: default
+prompt_md: |
+  ## Find the car with the **highest fuel efficiency (mpg)**
+
+  Use PODIUM however you like. A good approach is to raise the
+  weight on **mpg** until it dominates the ranking, then look at
+  the top of the list.
+timer_seconds: 180
+
+# Reset the participant-facing PODIUM state to a clean slate before this
+# exercise. `replace` writes every key in `initial:` via the MIVAIS
+# Gateway's `replay.push_state`; the existing dataset / numeric_cols are
+# kept (we don't list them, so they're untouched).
+world_state:
+  mode: replace
+  initial:
+    session_nudges: {}
+    weights: {}
+    user_preference_ranking: {}
+    ranked_items: []
+    display_order: []
+    advice: null
+
+task_steps:
+  - id: weights
+    label: "Increase the weight on mpg"
+    # Tick automatically the first time PODIUM writes a non-empty `weights` dict
+    # via the SVM (i.e. once the participant has nudged at least one attribute).
+    # PODIUM emits user_action with action=set_nudges when the participant
+    # nudges an attribute weight. Auto-check fires as soon as that lands.
+    auto_check_on:
+      event_type: user_action
+      meta:
+        action: set_nudges
+  - id: read_top
+    label: "Read the top of the ranking"
+  - id: note
+    label: "Note the top car"
+mivais_config:
+  logging_id: ex1-find-mpg
+answer:
+  type: capture_state
+  world_state_key: weights

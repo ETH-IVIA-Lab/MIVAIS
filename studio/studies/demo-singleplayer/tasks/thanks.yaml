@@ -1,0 +1,11 @@
+# FEATURE: terminal info screen. With completion_redirect_url set on the
+# study, finishing redirects to the recruitment platform instead.
+id: thanks
+type: info_screen
+body_md: |
+  ## Done — thank you!
+
+  In the admin dashboard this session can now be replayed end to end:
+  every weight change, every agent action, your voice, and your screen —
+  on one timeline.
+continue_label: "Finish"

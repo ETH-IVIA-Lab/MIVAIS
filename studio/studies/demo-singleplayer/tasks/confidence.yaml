@@ -1,0 +1,16 @@
+# FEATURE: slider (continuous scale) + with_va (VA stays visible beside it).
+id: confidence
+type: slider
+prompt_md: |
+  ## How confident are you?
+  How confident are you that the ranking you just built puts the most
+  fuel-efficient cars on top?
+with_va: true
+min: 0
+max: 100
+step: 5
+min_label: "Not at all"
+max_label: "Completely"
+unit: "%"
+default_value: 50
+show_value: true

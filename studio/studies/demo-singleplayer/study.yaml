@@ -1,0 +1,135 @@
+# Singleplayer, one VA, EVERY task tool and flow feature.
+#
+# This study is the feature reference: every task type (info, single/multi
+# choice, likert, slider, number input, free text, VA interaction), every
+# ground-truth kind (exact, set_match, ordered_match, regex), auto + manual
+# task steps, world-state reset, conditional flow (branch / drop / skip),
+# Latin-square counterbalancing, parameters, per-language prompts, optional
+# tasks, timers, screen recording with transcription, and a Prolific-style
+# completion redirect. Skim the task files in tasks/ — each is titled after
+# the feature it demonstrates.
+
+id: demo-singleplayer
+name: "Demo — singleplayer showcase (every feature)"
+version: 1
+
+mode: singleplayer
+
+# Free-form values substituted into prompts via {{ params.<key> }}.
+parameters:
+  tool_name: PODIUM
+  study_duration: "about 10 minutes"
+
+# Counterbalance the two middle blocks with an explicit 2×2 Latin square.
+block_order: latin_square
+block_orders:
+  - [intro, explore, questions, outro]
+  - [intro, questions, explore, outro]
+
+consent_text_md: |
+  ## Consent
+
+  You will use {{ params.tool_name }}, a visual analytics tool for ranking
+  cars, and answer a series of questions. The session records your screen
+  and microphone; recordings are stored under an anonymous identifier and
+  used for research only. The study takes {{ params.study_duration }}.
+consent_text_md_by_lang:
+  de: |
+    ## Einverständnis
+
+    Sie verwenden {{ params.tool_name }}, ein Visual-Analytics-Werkzeug zum
+    Ranken von Autos, und beantworten anschließend Fragen. Bildschirm und
+    Mikrofon werden unter einem anonymen Kennzeichen aufgezeichnet und nur
+    zu Forschungszwecken verwendet. Dauer: {{ params.study_duration }}.
+
+va:
+  system: podium
+  # room_per_session (default true) gives each session a private world on
+  # the locally-deployed PODIUM container.
+  external: true
+  iframe_url: "{external_base}/"
+  health_check_url: "{external_health_base}/state"
+  variants:
+    default:
+      description: "PODIUM"
+
+recording:
+  audio: per_participant
+  video: screen
+  transcribe: true
+  whisper_model: tiny
+  biometric: true
+
+ui:
+  show_progress_bar: true
+  timer_position: top_right
+  task_steps_position: right
+  theme: auto
+
+# Prolific-ready completion. `completion_code` is shown as copyable text on
+# the thank-you page; uncomment `completion_redirect_url: prolific` to instead
+# redirect finishers to Prolific's completion endpoint with that code filled
+# in ("prolific" is a shorthand for the full URL — any custom URL with
+# {completion_code} / {external_id} / {anon_id} placeholders also works).
+# Point Prolific's study URL at
+#   /s/<CODE>?PROLIFIC_PID={{%PROLIFIC_PID%}}&STUDY_ID={{%STUDY_ID%}}&SESSION_ID={{%SESSION_ID%}}
+# and the PID is stored on each participant (admin session page + exports).
+#
+# Prolific completion code (from the "redirect using a URL" setting). The
+# redirect is ON: finishers are sent to Prolific with this code filled in, and
+# the thank-you page also shows it as a copyable fallback.
+completion_code: C1HXSAZE
+completion_redirect_url: prolific
+
+
+replay:
+  event_types:
+    - match: { event_type: user_action, meta: { action: compute_weights } }
+      category: ranking
+      label: "computed weights"
+    - match: { event_type: user_action, meta: { action: rank_all } }
+      category: ranking
+      label: "ranked all items"
+    - match: { event_type: user_action, meta: { action: drop_order } }
+      category: ranking
+      label: "reordered items"
+    - match: { event_type: user_action, meta: { action: set_nudges } }
+      category: ranking
+      label: "adjusted weight nudges"
+    - match: { event_type: user_action, meta: { action: drag_update } }
+      category: cursor
+      label: "dragged item"
+
+blocks:
+  - id: intro
+    name: "Intro"
+    tasks: [welcome, experience, warmup-check]
+
+  - id: explore
+    name: "Explore in the VA"
+    tasks: [find-efficient, confidence]
+
+  - id: questions
+    name: "Questions"
+    # randomize_within: presentation order of these tasks is shuffled per
+    # participant (independently of block-level counterbalancing).
+    randomize_within: true
+    tasks: [quiz-top-car, quiz-attributes, quiz-order, outlier-count]
+
+  - id: outro
+    name: "Wrap-up"
+    tasks:
+      # Shared fragments from _lib/ — the same wording across all demo studies.
+      - $ref: ../_lib/tasks/nasa-tlx.yaml
+      # $ref + shallow-merge: the study adds a conditional-flow rule on top of
+      # the shared task — answer wrong and you are dropped from the study.
+      - $ref: ../_lib/tasks/attention-check.yaml
+        next:
+          - when: "not correct"
+            goto: { action: drop }
+          - when: default
+            goto: { next_task: true }
+      - branch-choice
+      - bonus-slider
+      - reflection
+      - thanks

@@ -1,0 +1,13 @@
+id: ex3-confidence
+type: likert
+with_va: true                          # keep PODIUM visible while rating
+prompt_md: "Rate the following about your PODIUM experience:"
+scale:
+  min: 1
+  max: 7
+  min_label: "Strongly disagree"
+  max_label: "Strongly agree"
+items:
+  - { id: control,    label: "I felt in control of the ranking" }
+  - { id: clarity,    label: "It was clear how my changes affected the ranking" }
+  - { id: confidence, label: "I am confident my final top three is the right one for me" }

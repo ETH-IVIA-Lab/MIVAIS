@@ -1,0 +1,17 @@
+id: ex1-quiz
+type: single_choice
+with_va: true                          # keep PODIUM visible while answering
+prompt_md: |
+  ## Which car came out as the most fuel-efficient?
+  Pick the one PODIUM ranked first when mpg dominated. PODIUM is
+  still on the left if you want to look again.
+options:
+  - { id: honda_civic,      label: "Honda Civic" }
+  - { id: pontiac_grand_am, label: "Pontiac Grand Am" }
+  - { id: honda_accord,     label: "Honda Accord" }
+  - { id: toyota_corolla,   label: "Toyota Corolla" }
+  - { id: vw_dasher,        label: "VW Dasher" }
+ground_truth:
+  type: exact
+  value: honda_civic
+tags: [comprehension, has-ground-truth]

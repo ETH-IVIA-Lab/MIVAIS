@@ -1,0 +1,8 @@
+packages:
+  - "packages/*"
+  - "PODIUM_V2/frontend"
+  - "Voyager2_VA/frontend"
+  - "ProactiveVA/frontend"
+  - "USERRAG/frontend"
+  - "studio/frontend"
+  - "SoftAttr2/frontend"

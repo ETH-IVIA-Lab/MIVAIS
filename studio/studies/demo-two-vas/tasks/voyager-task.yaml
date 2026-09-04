@@ -1,0 +1,20 @@
+# FEATURE: the SAME study observes a completely different state vocabulary —
+# Studio switches the embedded system at task start, no special support needed.
+id: voyager-task
+type: va_interaction
+va_system: voyager
+prompt_md: |
+  ## Tool B — find a relationship
+  Explore the charts until you find a clear relationship between two
+  attributes. Focus a chart that shows it.
+timer_seconds: 180
+task_steps:
+  - id: explore
+    label: "Interact with the charts a few times"
+    mode: auto              # must be done IN the VA — not manually tickable
+    auto_check_on:
+      event_type: user_action
+      count: 3
+answer:
+  type: capture_state
+  world_state_key: current_spec

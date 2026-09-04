@@ -1,0 +1,83 @@
+# Singleplayer, TWO VA systems in one study.
+#
+# Exercises the multi-VA machinery: va_systems with two entries, per-task
+# va_system binding (Studio brings the right system up at task start), the
+# same capture_state answer against two different state vocabularies, random
+# block order, and a cross-tool comparison questionnaire. Voyager also
+# demonstrates dataset swapping: `?dataset=penguins` on the iframe URL makes
+# the room load data/penguins.json instead of the default cars.
+
+id: demo-two-vas
+name: "Demo — two VAs in one study (PODIUM + Voyager 2)"
+version: 1
+
+mode: singleplayer
+
+# Present the two tool blocks in random order per participant — a minimal
+# within-subjects design across tools.
+block_order: random
+block_orders:
+  - [intro, podium-block, voyager-block, compare]
+  - [intro, voyager-block, podium-block, compare]
+
+consent_text_md: |
+  ## Consent
+  You will try **two different** visual analytics tools — a ranking tool
+  (cars data) and a chart-recommendation tool (penguins data) — and compare
+  them. Screen recording is on; the session takes about 12 minutes.
+
+va_systems:
+  podium:
+    system: podium
+    external: true
+    iframe_url: "{external_base}/"
+    health_check_url: "{external_health_base}/state"
+  voyager:
+    system: voyager
+    external: true
+    # ?dataset=<name> picks the dataset for this study's rooms (see
+    # Voyager2_VA/backend/data/ for the bundled options; default is cars).
+    iframe_url: "{voyager_base}/?dataset=penguins"
+    health_check_url: "{voyager_health_base}/"
+primary_va_system: podium
+
+recording:
+  audio: none
+  video: screen
+  transcribe: false
+
+# How PODIUM's own interactions read on the admin session-replay timeline
+# (color + label per action, plus a filter chip). Only PODIUM's vocabulary is
+# declared here — Voyager2's actions aren't covered by this study or by
+# Studio's built-ins yet, so they still fall through to the generic "other"
+# category on the replay timeline until a Voyager2-specific rule set is
+# researched and added.
+replay:
+  event_types:
+    - match: { event_type: user_action, meta: { action: compute_weights } }
+      category: ranking
+      label: "computed weights"
+    - match: { event_type: user_action, meta: { action: rank_all } }
+      category: ranking
+      label: "ranked all items"
+    - match: { event_type: user_action, meta: { action: drop_order } }
+      category: ranking
+      label: "reordered items"
+    - match: { event_type: user_action, meta: { action: set_nudges } }
+      category: ranking
+      label: "adjusted weight nudges"
+    - match: { event_type: user_action, meta: { action: drag_update } }
+      category: cursor
+      label: "dragged item"
+
+blocks:
+  - id: intro
+    tasks: [welcome]
+  - id: podium-block
+    name: "Tool A — ranking"
+    tasks: [podium-task, podium-rating]
+  - id: voyager-block
+    name: "Tool B — charts"
+    tasks: [voyager-task, voyager-rating]
+  - id: compare
+    tasks: [preference, why, thanks]

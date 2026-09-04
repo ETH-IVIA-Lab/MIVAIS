@@ -1,0 +1,96 @@
+# Local MIVAIS Studio stack — Mongo + Studio + PODIUM + Voyager2 + ProactiveVA,
+# all built and run locally via Docker.
+#
+#   docker compose up -d --build
+#   → Mongo + Studio + PODIUM + Voyager2 + ProactiveVA come up.
+#   → Studio embeds each VA (browser loads http://localhost:<host-port>;
+#     Studio health-checks it in-network at http://<service>:<port>).
+#
+# Open http://localhost:8000/admin/login, register a study (e.g. podium-smoke),
+# mint a code, and visit /s/<CODE>.
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: studio-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - studio-mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 })"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  podium:
+    build:
+      context: .
+      dockerfile: PODIUM_V2/Dockerfile
+    image: mivais-podium:latest
+    container_name: studio-podium
+    restart: unless-stopped
+    ports:
+      - "${PODIUM_HOST_PORT:-7100}:8000"
+
+  voyager2:
+    build:
+      context: .
+      dockerfile: Voyager2_VA/Dockerfile
+    image: mivais-voyager2:latest
+    container_name: studio-voyager2
+    restart: unless-stopped
+    ports:
+      - "${VOYAGER2_HOST_PORT:-7101}:8001"
+
+  proactiveva:
+    build:
+      context: .
+      dockerfile: ProactiveVA/Dockerfile
+    image: mivais-proactiveva:latest
+    container_name: studio-proactiveva
+    restart: unless-stopped
+    environment:
+      LITELLM_BASE_URL: ${LITELLM_BASE_URL:-}
+      LITELLM_API_KEY: ${LITELLM_API_KEY:-}
+    ports:
+      - "${PROACTIVEVA_HOST_PORT:-7102}:8002"
+
+  studio:
+    build:
+      context: ./studio
+      dockerfile: Dockerfile
+    image: mivais-studio:local
+    container_name: studio
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+      podium:
+        condition: service_started
+      voyager2:
+        condition: service_started
+      proactiveva:
+        condition: service_started
+    ports:
+      - "${STUDIO_HOST_PORT:-8000}:8000"
+    environment:
+      STUDIO_MONGO_URL: mongodb://mongo:27017
+      STUDIO_MONGO_DB: ${STUDIO_MONGO_DB:-mivais_studio}
+      STUDIO_ADMIN_USERNAME: ${STUDIO_ADMIN_USERNAME:-admin}
+      STUDIO_ADMIN_PASSWORD: ${STUDIO_ADMIN_PASSWORD:-change-me}
+      STUDIO_JWT_SECRET: ${STUDIO_JWT_SECRET:-dev-only-change-me}
+      STUDIO_WHISPER_WORKER_ENABLED: "false"
+      STUDIO_EXTERNAL_VA_BASE_URL: "http://localhost:${PODIUM_HOST_PORT:-7100}"
+      STUDIO_EXTERNAL_VA_HEALTH_BASE_URL: "http://podium:8000"
+      STUDIO_VOYAGER_BASE_URL: "http://localhost:${VOYAGER2_HOST_PORT:-7101}"
+      STUDIO_VOYAGER_HEALTH_BASE_URL: "http://voyager2:8001"
+      STUDIO_PROACTIVE_BASE_URL: "http://localhost:${PROACTIVEVA_HOST_PORT:-7102}"
+      STUDIO_PROACTIVE_HEALTH_BASE_URL: "http://proactiveva:8002"
+    volumes:
+      - studio-data:/app/data
+
+volumes:
+  studio-mongo-data:
+  studio-data:

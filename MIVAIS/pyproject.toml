@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mivais"
+version = "1.0.0"
+description = "Mixed-Initiative Visual Analytics Infrastructure System"
+readme = "docs/index.md"
+requires-python = ">=3.10"
+authors = [{ name = "" }]
+license = { text = "" }
+
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "pyyaml>=6.0",
+]
+
+[tool.setuptools]
+packages = ["mivais"]

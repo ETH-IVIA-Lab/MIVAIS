@@ -1,0 +1,9 @@
+id: welcome
+type: info_screen
+body_md: |
+  ## Two tools, two datasets
+
+  You will use two visual analytics tools: **PODIUM** ranks classic cars by
+  weighted attributes; **Voyager 2** recommends charts while you explore a
+  penguin measurements dataset. You get a short task in each, then compare.
+continue_label: "Start"

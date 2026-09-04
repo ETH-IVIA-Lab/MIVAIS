@@ -1,0 +1,15 @@
+id: proactive-trust
+type: likert
+prompt_md: |
+  ## The assistant
+  The AI assistant offered help **proactively** — without being asked.
+  Please rate your experience with it.
+scale:
+  min: 1
+  max: 5
+  min_label: "Strongly disagree"
+  max_label: "Strongly agree"
+items:
+  - { id: timing,  label: "Well-timed",  description: "The assistant's suggestions came at appropriate moments (not intrusive)." }
+  - { id: useful,  label: "Useful",      description: "The suggestions were relevant to what I was trying to do." }
+  - { id: trust,   label: "Trustworthy", description: "I would rely on this assistant in a real analysis." }

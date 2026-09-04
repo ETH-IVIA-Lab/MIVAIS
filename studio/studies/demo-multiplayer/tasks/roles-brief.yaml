@@ -1,0 +1,16 @@
+# FEATURE: per-role prompt — each cohort member reads their own brief.
+id: roles-brief
+type: info_screen
+body_md: |
+  ## Your role
+  Work with your partner through the shared tool and the chat.
+prompt_md_by_role:
+  analyst-a: |
+    ## You are Analyst A
+    You own the **attribute weights**. Only adjust weights; let your partner
+    reorder cars. Coordinate in the chat.
+  analyst-b: |
+    ## You are Analyst B
+    You own the **ordering**. Only drag cars; let your partner set weights.
+    Coordinate in the chat.
+continue_label: "Understood"

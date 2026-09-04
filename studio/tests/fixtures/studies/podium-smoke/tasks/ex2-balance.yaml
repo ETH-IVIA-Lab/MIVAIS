@@ -1,0 +1,30 @@
+id: ex2-balance
+type: va_interaction
+variant: default
+prompt_md: |
+  ## Find a car that **balances horsepower and fuel efficiency**
+
+  Set the weights so that horsepower and mpg both matter, then look
+  at what bubbles up. You decide what "balanced" means.
+timer_seconds: 240
+
+# Continue from the previous task's state, but reset the nudges so the
+# participant starts the new exercise from neutral attribute weights.
+# Everything else (display_order, current ranking) is preserved.
+world_state:
+  mode: continue
+  set:
+    session_nudges: {}
+
+task_steps:
+  - id: hp
+    label: "Raise weight on horsepower"
+  - id: mpg
+    label: "Keep weight on mpg"
+  - id: pick
+    label: "Pick a single car"
+mivais_config:
+  logging_id: ex2-balance
+answer:
+  type: capture_state
+  world_state_key: weights

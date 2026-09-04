@@ -1,0 +1,7 @@
+docs/node_modules/
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store

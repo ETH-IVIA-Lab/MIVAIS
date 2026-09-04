@@ -1,0 +1,11 @@
+# FEATURE: number_input as a counting question (clean numeric analysis).
+id: outlier-count
+type: number_input
+prompt_md: |
+  ## Counting
+  Roughly how many cars in the dataset would you call **outliers** on
+  weight (unusually heavy or light)?
+min: 0
+max: 30
+step: 1
+placeholder: "e.g. 3"

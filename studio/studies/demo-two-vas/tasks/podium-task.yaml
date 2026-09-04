@@ -1,0 +1,24 @@
+# FEATURE: task bound to va_system `podium` (explicit binding).
+id: podium-task
+type: va_interaction
+va_system: podium
+prompt_md: |
+  ## Tool A — find the best all-rounder
+  Use the weights to find a car that balances efficiency and power.
+timer_seconds: 180
+world_state:
+  mode: replace
+  initial:
+    session_nudges: {}
+    weights: {}
+    display_order: []
+task_steps:
+  - id: nudge
+    label: "Adjust a weight"
+    mode: auto              # must be done IN the VA — not manually tickable
+    auto_check_on:
+      event_type: user_action
+      meta: { action: set_nudges }
+answer:
+  type: capture_state
+  world_state_key: weights

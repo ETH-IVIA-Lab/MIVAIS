@@ -1,0 +1,35 @@
+id: explore
+type: va_interaction
+prompt_md: |
+  ## Find a strongly related attribute pair
+
+  Change the **x** and **y** attributes until you find a pair the
+  assistant calls a **strong** correlation. Read what it says about them.
+timer_seconds: 180
+
+# Start every participant from the same view.
+world_state:
+  mode: replace
+  initial:
+    selected_attributes: { x: horsepower, y: mpg }
+    insight: null
+
+task_steps:
+  - id: change-axes
+    label: "Change an axis attribute"
+    # Ticks automatically when the Starter VA records the participant's
+    # select_attributes action — Studio observes the event stream, the VA
+    # emits nothing study-specific.
+    mode: auto              # must be done IN the VA — not manually tickable
+    auto_check_on:
+      event_type: user_action
+      meta:
+        action: select_attributes
+  - id: read-insight
+    label: "Read the agent's insight"
+
+# The analytical state itself is the answer: whatever pair the participant
+# settled on is captured from the shared World State at submit time.
+answer:
+  type: capture_state
+  world_state_key: selected_attributes

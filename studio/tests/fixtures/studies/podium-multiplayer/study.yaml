@@ -1,0 +1,86 @@
+# 2-participant multiplayer demo against PODIUM_V2.
+#
+# Two roles share the same VA process and the same WorldState.
+#   - analyst : full access; can write `weights`/`session_nudges`/etc.
+#   - observer: read-only; sees what the analyst does live (cursors + state).
+#
+# Codes pre-bound to a role go straight into the lobby; codes minted without
+# a role land the participant on the role-picker. Either way both participants
+# end up in the same lobby and click "I'm ready" to start.
+
+id: podium-multiplayer
+name: "PODIUM multiplayer · 2 participants"
+version: 1
+
+mode: multiplayer
+participants_required: 2
+
+# Tasks advance only after every participant submits (default).
+advance_policy: all
+
+consent_text_md: |
+  ## Multi-participant PODIUM session
+
+  You're about to take part in a small two-person session. You and your partner
+  will work with the same PODIUM ranking interface at the same time. Your
+  responses are stored under anonymous identifiers and used for research only.
+  By continuing you agree.
+
+va:
+  system: podium
+  # External mode — both participants embed the SAME hosted PODIUM, which is
+  # exactly what multiplayer wants (one shared WorldState). See podium-smoke.
+  external: true
+  iframe_url: "{external_base}/"
+  health_check_url: "{external_health_base}/state"
+  spawn_timeout_seconds: 60
+  shutdown_grace_seconds: 5
+  variants:
+    default:
+      description: "Hosted PODIUM (shared between analyst + observer)"
+
+recording:
+  audio: none
+  video: screen        # each participant records their own screen + mic → per-POV replay
+  transcribe: true
+  whisper_model: small
+  whisper_language: auto
+
+roles:
+  - id: analyst
+    name: "Analyst"
+    description: "Drives the ranking — sets weights and reorders cars."
+    agent_id: analyst                # PODIUM's full-access role (see agents_config.json)
+    capacity: 1
+    color: "#2563eb"                 # blue (user-side, per the lab palette)
+  - id: observer
+    name: "Observer"
+    description: "Watches what the analyst does. Read-only. Can comment via chat (if enabled)."
+    agent_id: observer               # PODIUM's read-only role
+    capacity: 1
+    color: "#16a34a"                 # mixed-initiative green
+
+ui:
+  show_progress_bar: true
+  show_timer: true
+  task_description_position: left
+  task_steps_visible: true
+  task_steps_position: right
+  show_presence: true
+
+blocks:
+  - id: intro
+    name: "Intro"
+    tasks:
+      - welcome
+
+  - id: shared-exercise
+    name: "Exercise · Most fuel-efficient car (shared)"
+    tasks:
+      - shared-find-mpg
+      - both-reflect
+
+  - id: debrief
+    name: "Wrap-up"
+    tasks:
+      - thanks

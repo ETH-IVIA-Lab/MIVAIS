@@ -1,0 +1,12 @@
+id: podium-rating
+type: slider
+va_system: podium
+with_va: true
+prompt_md: |
+  ## Rate Tool A
+  How well did the ranking tool support the task?
+min: 0
+max: 10
+step: 1
+min_label: "Poorly"
+max_label: "Perfectly"

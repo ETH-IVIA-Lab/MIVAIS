@@ -1,0 +1,44 @@
+# FEATURE: shared va_interaction — both participants act in ONE world; steps
+# auto-tick from either participant's events; chat usage is itself a step.
+# advance: all (study default) — the task ends when BOTH submitted.
+id: joint-ranking
+type: va_interaction
+prompt_md: |
+  ## Build ONE ranking together
+  Agree on a ranking that balances **fuel efficiency** and **power**.
+  Split the work by your roles and talk in the chat.
+timer_seconds: 420
+
+world_state:
+  mode: replace
+  initial:
+    session_nudges: {}
+    weights: {}
+    user_preference_ranking: {}
+    ranked_items: []
+    display_order: []
+    advice: null
+
+task_steps:
+  - id: chat
+    label: "Say hello in the chat"
+    mode: auto              # must be done IN the VA — not manually tickable
+    auto_check_on:
+      event_type: user_action
+      meta: { action: chat_message }
+  - id: weights
+    label: "Adjust a weight (Analyst A)"
+    mode: auto              # must be done IN the VA — not manually tickable
+    auto_check_on:
+      event_type: user_action
+      meta: { action: set_nudges }
+  - id: order
+    label: "Drag a car (Analyst B)"
+    mode: auto              # must be done IN the VA — not manually tickable
+    auto_check_on:
+      event_type: user_action
+      meta: { action: drop_order }
+
+answer:
+  type: capture_state
+  world_state_key: display_order

@@ -1,0 +1,16 @@
+# FEATURE: conditional flow — the answer decides where the participant goes
+# (skip the optional bonus, or take it). `when` sees: answer, score, correct,
+# role, params.
+id: branch-choice
+type: single_choice
+prompt_md: |
+  ## One more?
+  Would you like one short bonus question before you finish?
+options:
+  - { id: "yes", label: "Sure, one more" }
+  - { id: "no",  label: "No thanks, wrap up" }
+next:
+  - when: "answer == 'no'"
+    goto: { task: reflection }
+  - when: default
+    goto: { next_task: true }

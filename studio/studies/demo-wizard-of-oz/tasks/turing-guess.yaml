@@ -1,0 +1,13 @@
+# FEATURE: the manipulation check — free_text with a regex ground truth that
+# flags answers suspecting a human (for quick filtering in the export).
+id: turing-guess
+type: free_text
+prompt_md: |
+  ## One more thing
+  What do you think generated the advisor's messages? Describe briefly.
+min_chars: 10
+max_chars: 600
+rows: 4
+ground_truth:
+  type: regex
+  value: "(human|person|someone|wizard)"

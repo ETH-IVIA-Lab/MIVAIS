@@ -1,0 +1,38 @@
+# The core analysis task. The captured answer is the participant's notes —
+# the analytical artifact itself, including any comments the verification
+# agent attached to it.
+id: investigate-fire
+type: va_interaction
+prompt_md: |
+  ## Investigate: what happened, and where?
+  Shortly before **19:00** something serious happens in Abila. Use the map, timeline,
+  and messages to find out **what** happened and **where**. Record your
+  finding as a **note** (double-click a hexagon on the map, or use the note
+  form in the right panel) — stage the messages you used as evidence first by
+  clicking them.
+timer_seconds: 420
+
+task_steps:
+  - id: narrow-time
+    label: "Narrow the timeline to the incident window"
+    mode: auto              # must be done IN the VA — not manually tickable
+    auto_check_on:
+      event_type: user_action
+      meta: { action: set_time_range }
+  - id: inspect
+    label: "Inspect messages (click rows to stage evidence)"
+    mode: auto              # must be done IN the VA — not manually tickable
+    auto_check_on:
+      event_type: user_action
+      meta: { action: select_message }
+  - id: note
+    label: "Add a note with your finding"
+    required: true
+    mode: auto              # must be done IN the VA — not manually tickable
+    auto_check_on:
+      event_type: user_action
+      meta: { action: add_note }
+
+answer:
+  type: capture_state
+  world_state_key: notes

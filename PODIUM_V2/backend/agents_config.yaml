@@ -1,0 +1,68 @@
+infrastructure:
+  description: PODIUM_V2
+  dataset: data/cars.csv
+  log_level: full
+users:
+- role: analyst
+  description: Full access — can express preferences, nudge weights, and reorganise the ranking
+  can_read: []
+  can_write:
+  - session_nudges
+  - display_order
+  bus_subscribe_topics:
+  - nl_command.response
+  bus_publish_topics:
+  - nl_command.request
+  - chat.message
+  - weights.compute_request
+  - rank_all.request
+- role: observer
+  description: Read-only — sees the live ranking and receives advisor messages but cannot modify anything
+  can_read: []
+  can_write: []
+  bus_subscribe_topics:
+  - nl_command.response
+  bus_publish_topics:
+  - chat.message
+- role: curator
+  description: Can reorganise display order only — receives advisor messages but cannot change weights
+    or nudges
+  can_read: []
+  can_write:
+  - display_order
+  bus_subscribe_topics:
+  - nl_command.response
+  bus_publish_topics:
+  - nl_command.request
+  - chat.message
+agents:
+- agent_id: svm_ranker
+  class: SVMRankingAgent
+  enabled: true
+  role: ranker
+  description: Reactive agent. Watches session_nudges on the WorldState blackboard and subscribes to
+    weights.compute_request/rank_all.request on the MessageBus. Recomputes SVM-derived weights and
+    re-ranks all items with SAW.
+  observation:
+    strategy: watch
+    watches:
+    - session_nudges
+    - dataset
+    can_read:
+    - dataset
+    - numeric_cols
+    - session_nudges
+  actions:
+    can_write:
+    - ranked_items
+    - weights
+    - svm_status
+    - display_order
+    - user_preference_ranking
+  bus:
+    publish_topics: []
+    subscribe_topics:
+    - weights.compute_request
+    - rank_all.request
+  params:
+    C: 1.0

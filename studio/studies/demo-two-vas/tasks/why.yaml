@@ -1,0 +1,8 @@
+id: why
+type: free_text
+prompt_md: |
+  ## Why?
+  One or two sentences on what drove your choice.
+min_chars: 20
+max_chars: 800
+rows: 4

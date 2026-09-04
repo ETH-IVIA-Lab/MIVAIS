@@ -1,0 +1,31 @@
+name,mpg,cylinders,horsepower,weight,acceleration,year
+Chevrolet Chevelle Malibu,18.0,8,130,3504,12.0,70
+Buick Skylark 320,15.0,8,165,3693,11.5,70
+Plymouth Satellite,18.0,8,150,3436,11.0,70
+AMC Rebel SST,16.0,8,150,3433,12.0,70
+Ford Torino,17.0,8,140,3449,10.5,70
+Ford Galaxie 500,15.0,8,198,4341,10.0,70
+Chevrolet Impala,14.0,8,220,4354,9.0,70
+Plymouth Fury III,14.0,8,215,4312,8.5,70
+Pontiac Catalina,14.0,8,225,4382,10.0,70
+AMC Ambassador DPL,15.0,8,190,4382,8.5,70
+Toyota Corolla,24.0,4,95,2372,15.0,74
+Honda Civic,33.0,4,65,1773,19.5,76
+VW Dasher,23.5,4,95,2372,14.5,74
+Toyota Mark II,20.0,6,90,3150,13.5,75
+Dodge Dart Swinger,22.0,6,105,2875,14.5,74
+Ford Mustang,18.0,6,122,2945,12.0,78
+Chevrolet Camaro,17.5,8,150,3381,12.5,77
+Pontiac Firebird,16.0,8,160,3609,13.5,77
+AMC Concord DL,19.0,6,125,3278,14.0,79
+BMW 320I,21.5,4,110,2600,12.8,77
+Toyota Celica GT,19.2,4,105,2855,14.5,78
+Mazda RX-7 GS,23.7,4,100,2833,15.4,79
+Peugeot 504,25.0,4,100,2716,16.0,74
+Datsun 710,24.0,4,75,2265,18.5,73
+Honda Accord,29.5,4,78,2424,14.5,77
+Buick Century,20.6,6,105,3380,15.8,79
+Ford Mustang GT,27.0,4,88,2670,14.5,79
+Pontiac Grand Am,31.0,4,65,2190,15.5,82
+Oldsmobile Cutlass,26.0,4,85,2587,16.0,82
+Chevrolet Citation,28.0,4,80,2617,16.7,80
