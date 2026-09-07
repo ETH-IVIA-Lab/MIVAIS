@@ -1,12 +1,12 @@
 # MIVAIS: A Study Environment for Multi-Agent Mixed-Initiative Visual Analytics Applications
 
-[![arXiv:2603.XXXXX](https://img.shields.io/badge/arXiv-2603.XXXXX-red)](https://arxiv.org/abs/2603.XXXXX)
+[![arXiv:2609.04983](https://img.shields.io/badge/arXiv-2609.04983-red)](https://arxiv.org/abs/2609.04983)
 
 ![Overview of the MIVAIS framework. The MIVAIS Infrastructure (left) supports the implementation of modular, mixed-initiative Visual Analytics (VA) systems where software and human agents collaborate. The MIVAIS Study Environment (right) enables researchers to easily configure experiments, collect multi-modal data during participant sessions, and perform comprehensive post-analysis.](MIVAIS/docs/mivais_teaser.svg)
 
 MIVAIS (A Study Environment for Multi-Agent Mixed-Initiative Visual Analytics Applications) is a framework that allows researchers to build mixed-initiative Visual Analytics applications and evaluate their approaches with low-effort study setup and post-analysis. The MIVAIS Infrastructure supports the implementation of modular, mixed-initiative Visual Analytics (VA) systems where software and human agents collaborate. The MIVAIS Study Environment enables researchers to easily configure experiments, collect multi-modal data during participant sessions, and perform comprehensive post-analysis.     
 
-Learn more about MIVAIS by reading the [MIVAIS research paper](https://arxiv.org/abs/2603.XXXXX).
+Learn more about MIVAIS by reading the [MIVAIS research paper](https://arxiv.org/abs/2609.04983).
 
 If you reference MIVAIS, use the following citation:
 
@@ -15,9 +15,9 @@ If you reference MIVAIS, use the following citation:
   title = {{MIVAIS}: { A Study Environment for Multi-Agent Mixed-Initiative Visual Analytics Applications}},
   author = {{St{\"a}hle}, Tobias and {Schneider}, Simon and {Sevastjanova}, Rita and {El-Assady}, Mennatallah},
   year = {2026},
-  eprint = {2603.XXXXX},
+  eprint = {2609.04983},
   archivePrefix = {arXiv},
-  doi = {10.48550/arXiv.2603.XXXXX}
+  doi = {10.48550/arXiv.2609.04983}
 }
 ```
 
