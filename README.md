@@ -22,7 +22,7 @@ If you reference MIVAIS, use the following citation:
 ```
 
 
-##This repository contains:
+## This repository contains:
 
 - `MIVAIS/` — the core Python framework (WorldState, MessageBus, Gateway,
   AgentRegistry, PermissionGuard, AuditLog).
